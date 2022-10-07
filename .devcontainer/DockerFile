@@ -1,0 +1,7 @@
+FROM node:alpine
+WORKDIR /app
+RUN npm install --global yarn nodemon next react react-dom
+WORKDIR /app/frontend
+RUN npm i
+WORKDIR /app/backend
+RUN npm i

@@ -1,5 +1,5 @@
 {
-    "name": "tp-notes-iasc",
+    "name": "tp-notes-iasc-FE",
     "dockerFile": "Dockerfile",
     "appPort": [
         3000
