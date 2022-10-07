@@ -1,33 +1,90 @@
-import {  CardContent, TextField, CardActions, Button, Card, Grid } from '@mui/material'
-import { useState } from 'react'
+import {
+  CardContent,
+  TextField,
+  CardActions,
+  Button,
+  Card,
+  Grid,
+  Alert,
+} from '@mui/material';
+import Router from 'next/router';
+import { useContext, useState } from 'react';
+import { Context } from '../libs/context';
 
 export default function Login() {
-    const [userName, setUserName] = useState('')
-    const [password, setPassword] = useState('')
-    return (
-        <Grid container justifyContent='center'>
-            <Card>
-                <CardContent>
-                    <Grid container spacing={2}>
-                        <Grid item xs={12}>
-                            <h1>
-                                TP IASC G2
-                            </h1>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField className='input' value={userName} label='Username' fullWidth onChange={(e) => setUserName(e.target.value)}></TextField>
-                        </Grid>
-                        <Grid item xs={12}>
-                            <TextField className='input' value={password} type='password' label='Password' fullWidth onChange={(e) => setPassword(e.target.value)}></TextField>
-                        </Grid>
-                    </Grid>
-                </CardContent>
-                <CardActions>
-                    <Grid container justifyContent='center'>
-                        <Button onClick={() => console.log('login')}>Login</Button>
-                    </Grid>
-                </CardActions>
-            </Card>
-        </Grid>
-    )
+  const [username, setusername] = useState('');
+  const [password, setPassword] = useState('');
+  const [alert, setAlert] = useState(null);
+  const [context, setContext] = useContext(Context);
+  const loginAndRedirect = async () => {
+    //call login api
+    try {
+      const options = {
+        body: {
+          username,
+          password,
+        },
+        method: 'POST',
+      };
+      const response = await fetch('http://localhost:3000/api/login', options);
+      const data = await response.json();
+      if (data.status === 'ok') {
+        setContext(data);
+        Router.push('/lists');
+      } else {
+        throw new Error('Invalid credentials');
+      }
+    } catch (err) {
+      console.log(err);
+      setAlert(err.message);
+    }
+  };
+  return (
+    <Grid container justifyContent="center">
+      <Card>
+        <CardContent>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <h1>TP IASC G2</h1>
+            </Grid>
+            {alert && (
+              <Grid item xs={12}>
+                <Alert
+                  onClick={() => setAlert(null)}
+                  variant="filled"
+                  severity="error"
+                >
+                  {alert}
+                </Alert>
+              </Grid>
+            )}
+            <Grid item xs={12}>
+              <TextField
+                className="input"
+                value={username}
+                label="username"
+                fullWidth
+                onChange={(e) => setusername(e.target.value)}
+              ></TextField>
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                className="input"
+                value={password}
+                type="password"
+                label="Password"
+                fullWidth
+                onChange={(e) => setPassword(e.target.value)}
+              ></TextField>
+            </Grid>
+          </Grid>
+        </CardContent>
+        <CardActions>
+          <Grid container justifyContent="center">
+            <Button onClick={loginAndRedirect}>Login</Button>
+          </Grid>
+        </CardActions>
+      </Card>
+    </Grid>
+  );
 }
