@@ -1,0 +1,14 @@
+{
+    "name": "tp-notes-iasc",
+    "dockerFile": "Dockerfile",
+    "appPort": [
+        8080
+    ],
+    "runArgs": [],
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "github.copilot"
+    ]
+}
