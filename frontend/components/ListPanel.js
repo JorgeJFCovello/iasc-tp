@@ -75,7 +75,12 @@ export default function ListPanel() {
   const [loading, setLoading] = useState(false);
   //useEffect para sacar las listas de un websocket
   React.useEffect(() => {
-    const webSocket = io('http://localhost:3000');
+    const webSocket = io.connect('http://localhost:8080', {
+      withCredentials: true,
+      extraHeaders: {
+        'my-custom-header': 'abcd',
+      },
+    });
     webSocket.on('get-lists', (payload) => setList(JSON.parse(payload)));
     setSocket(webSocket);
     setLoading(true);
