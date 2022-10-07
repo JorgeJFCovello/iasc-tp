@@ -1,11 +1,27 @@
 const List = require('../models/list');
+const User = require('../models/user');
 
 const lists = []
+const users = []
 const saveList = (list) => lists.push(list);
 const findListByName = (listName) => {
     return lists.find(list => list.name === listName);
 }
+const findUserByName = (name) => {
+    return users.find(user => user.name === name);
+}
 
+const shareList = (req, resp) => {
+    try {
+        const { name, listName } = req.body;
+        const user = findUserByName(name);
+        const list = findListByName(listName)
+        user.addList(list);
+        resp.status(200).json(list)
+    } catch (err) {
+        resp.status(500).json({ message: err.message })
+    }
+}
 const create = (req, resp) => {
     try {
         const { name } = req.body;
