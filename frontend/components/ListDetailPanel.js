@@ -2,12 +2,24 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
 import Router from 'next/router';
-import { Button, Card, CardContent, Grid } from '@mui/material';
+import { Button, Card, CardContent, Checkbox, Grid } from '@mui/material';
 import moment from 'moment';
 
 const columns = [
   { field: 'name', width: 300, headerName: 'List name' },
-  { field: 'taskCount', width: 280, headerName: 'Tasks' },
+  {
+    field: 'done',
+    width: 280,
+    headerName: 'Done',
+    renderCell: (params) => {
+      const changeValue = (e) => {
+        e.stopPropagation();
+        //change vaue in ws
+      };
+
+      return <Checkbox checked={params.row.done} onChange={changeValue} />;
+    },
+  },
   { field: 'creationDate', width: 300, headerName: 'Creation Date' },
   {
     field: 'action',
@@ -26,7 +38,6 @@ const columns = [
 
       return (
         <div>
-          <Button onClick={seeListDetails}>See more</Button>
           <Button onClick={deleteList}>Delete</Button>
         </div>
       );
@@ -38,29 +49,30 @@ const rows = [
   {
     id: 1,
     name: 'test',
-    taskCount: '2',
+    done: true,
     creationDate: moment().format('DD/MM/YYYY'),
   },
   {
     id: 2,
     name: 'test2',
-    taskCount: '2',
+    done: false,
     creationDate: moment().format('DD/MM/YYYY'),
   },
 ];
-export default function ListPanel() {
-  const [lists, setList] = useState(rows);
+export default function ListPanel(props) {
+  const { listName } = props;
+  const [tasks, setTasks] = useState(rows);
   const [pageSize, setPageSize] = useState(5);
   //useEffect para sacar las listas de un websocket
   return (
     <Grid container justifyContent="center">
       <Grid item xs={8}>
         <Card>
-          <h1>Todo Lists</h1>
+          <h1>{listName}</h1>
           <CardContent>
             <DataGrid
               style={{ height: 400, width: '100%' }}
-              rows={lists}
+              rows={tasks}
               columns={columns}
               pageSize={pageSize}
               onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
