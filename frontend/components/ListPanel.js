@@ -2,11 +2,14 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
 import Router from 'next/router';
+import io from 'socket.io-client';
 import {
+  Alert,
   Button,
   Card,
   CardActions,
   CardContent,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,7 +31,10 @@ const columns = [
     renderCell: (params) => {
       const deleteList = (e) => {
         e.stopPropagation();
-        //call api service to delete
+        const options = {
+          method: 'DELETE',
+        };
+        fetch('http://localhost:3000/api/list/' + params.row.name, options);
       };
       const seeListDetails = (e) => {
         e.stopPropagation();
@@ -64,11 +70,46 @@ export default function ListPanel() {
   const [pageSize, setPageSize] = useState(5);
   const [newListName, setNewListName] = useState('');
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
+  const [socket, setSocket] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
   //useEffect para sacar las listas de un websocket
-
+  React.useEffect(() => {
+    const webSocket = io('http://localhost:3000');
+    webSocket.on('get-lists', (payload) => setList(JSON.parse(payload)));
+    setSocket(webSocket);
+    setLoading(true);
+    fetch('http://localhost:3000/api/list')
+      .then((res) => res.json())
+      .then((data) =>
+        setList(
+          data.map((list, index) => ({
+            ...list,
+            creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
+            taskCount: list.items.length,
+            id: index,
+          }))
+        )
+      )
+      .catch((err) => setError(err))
+      .finally(() => setLoading(false));
+  }, []);
   const saveNewList = () => {
-    console.log('saving new list');
-    setOpenCreationDialog(false);
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name: newListName }),
+    };
+    fetch('http://localhost:3000/api/list', options)
+      .then(() => {
+        setOpenCreationDialog(false);
+      })
+      .catch((err) => {
+        setError(err);
+      })
+      .finally(() => setLoading(false));
   };
   return (
     <Grid container justifyContent="center">
@@ -96,24 +137,34 @@ export default function ListPanel() {
         <DialogTitle>Create new list</DialogTitle>
         <DialogContent>
           <Grid container justifyContent="center">
-            <Grid item xs={8}>
-              <TextField
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                label="List Name"
-              />
-            </Grid>
+            {error && (
+              <Grid item xs={12}>
+                <Alert severity="error">{error}</Alert>
+              </Grid>
+            )}
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              <Grid item xs={8}>
+                <TextField
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                  label="List Name"
+                />
+              </Grid>
+            )}
           </Grid>
         </DialogContent>
         <DialogActions>
           <Button
             variant="outlined"
             color="secondary"
+            disabled={loading}
             onClick={() => setOpenCreationDialog(false)}
           >
             Cancel
           </Button>
-          <Button variant="outlined" onClick={saveNewList}>
+          <Button variant="outlined" disabled={loading} onClick={saveNewList}>
             Create
           </Button>
         </DialogActions>

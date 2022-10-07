@@ -17,7 +17,6 @@ export default function Login() {
   const [alert, setAlert] = useState(null);
   const [context, setContext] = useContext(Context);
   const loginAndRedirect = async () => {
-    //call login api
     try {
       const options = {
         body: {

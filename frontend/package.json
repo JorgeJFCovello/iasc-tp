@@ -13,12 +13,14 @@
     "@emotion/styled": "^11.10.4",
     "@mui/material": "^5.10.8",
     "@mui/x-data-grid": "^5.17.6",
+    "isomorphic-fetch": "^3.0.0",
     "moment": "^2.29.4",
     "momentjs": "^2.0.0",
     "next": "12.3.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "sass": "^1.55.0",
+    "socket.io-client": "^4.5.2",
     "socketio": "^1.0.0"
   },
   "devDependencies": {
