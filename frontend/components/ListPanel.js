@@ -2,7 +2,18 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
 import Router from 'next/router';
-import { Button, Card, CardContent, Grid } from '@mui/material';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  TextField,
+} from '@mui/material';
 import moment from 'moment';
 
 const columns = [
@@ -51,7 +62,14 @@ const rows = [
 export default function ListPanel() {
   const [lists, setList] = useState(rows);
   const [pageSize, setPageSize] = useState(5);
+  const [newListName, setNewListName] = useState('');
+  const [openCreationDialog, setOpenCreationDialog] = useState(false);
   //useEffect para sacar las listas de un websocket
+
+  const saveNewList = () => {
+    console.log('saving new list');
+    setOpenCreationDialog(false);
+  };
   return (
     <Grid container justifyContent="center">
       <Grid item xs={8}>
@@ -67,8 +85,39 @@ export default function ListPanel() {
               rowsPerPageOptions={[5, 10, 25, 50]}
             />
           </CardContent>
+          <CardActions>
+            <Button onClick={() => setOpenCreationDialog(!openCreationDialog)}>
+              Create new list
+            </Button>
+          </CardActions>
         </Card>
       </Grid>
+      <Dialog open={openCreationDialog}>
+        <DialogTitle>Create new list</DialogTitle>
+        <DialogContent>
+          <Grid container justifyContent="center">
+            <Grid item xs={8}>
+              <TextField
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                label="List Name"
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={() => setOpenCreationDialog(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="outlined" onClick={saveNewList}>
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Grid>
   );
 }
