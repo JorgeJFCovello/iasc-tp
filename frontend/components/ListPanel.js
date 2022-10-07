@@ -51,22 +51,8 @@ const columns = [
   },
 ];
 
-const rows = [
-  {
-    id: 1,
-    name: 'test',
-    taskCount: '2',
-    creationDate: moment().format('DD/MM/YYYY'),
-  },
-  {
-    id: 2,
-    name: 'test2',
-    taskCount: '2',
-    creationDate: moment().format('DD/MM/YYYY'),
-  },
-];
 export default function ListPanel() {
-  const [lists, setList] = useState(rows);
+  const [lists, setList] = useState([]);
   const [pageSize, setPageSize] = useState(5);
   const [newListName, setNewListName] = useState('');
   const [openCreationDialog, setOpenCreationDialog] = useState(false);

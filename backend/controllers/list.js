@@ -23,10 +23,12 @@ const shareList = (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
-
+const refreshList = (list) =>
+  Object.values(socketCache).forEach((socket) => {
+    socket.emit(`get-lists-${list.name}`, list);
+  });
 const resendLists = () =>
   Object.values(socketCache).forEach((socket) => {
-    console.log('enviando socket');
     socket.emit('get-lists', lists);
   });
 const create = (req, resp) => {
@@ -83,6 +85,7 @@ const generateTask = (req, resp) => {
     const list = findListByName(listName);
     list.add({ name, done: false, index: list.items.length + 1 });
     resendLists();
+    refreshList(list);
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -94,6 +97,7 @@ const markTask = (req, resp) => {
     const list = findListByName(listName);
     const item = list.items.find((item) => item.name === taskName);
     item.done = !item.done;
+    refreshList(list);
     resp.status(200).json(item);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -104,6 +108,7 @@ const deleteTask = (req, resp) => {
     const { listName, taskName } = req.params;
     const list = findListByName(listName);
     list.remove(taskName);
+    refreshList(list);
     resendLists();
     resp.status(200).json(list);
   } catch (err) {
