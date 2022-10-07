@@ -15,7 +15,6 @@ const io = require('socket.io')(http, {
 });
 io.on('connection', (socket) => {
   connectionData = new Date().getTime().toString();
-  console.log(socket);
   socketCache[connectionData] = socket;
 });
 app.use(express.json());

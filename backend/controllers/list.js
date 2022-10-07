@@ -1,5 +1,6 @@
 const List = require('../models/list');
 const User = require('../models/user');
+const socketCache = require('../utils/sockets');
 
 const lists = [];
 const users = [];
@@ -22,11 +23,18 @@ const shareList = (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
+
+const resendLists = () =>
+  Object.values(socketCache).forEach((socket) => {
+    console.log('enviando socket');
+    socket.emit('get-lists', lists);
+  });
 const create = (req, resp) => {
   try {
     const { name } = req.body;
     const list = new List(name);
     saveList(list);
+    resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -44,6 +52,7 @@ const update = (req, resp) => {
     if (order) {
       list.insertInIndex(item.name, order - 1);
     }
+    resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -73,6 +82,7 @@ const generateTask = (req, resp) => {
     const { name } = req.body;
     const list = findListByName(listName);
     list.add({ name, done: false, index: list.items.length + 1 });
+    resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -94,6 +104,7 @@ const deleteTask = (req, resp) => {
     const { listName, taskName } = req.params;
     const list = findListByName(listName);
     list.remove(taskName);
+    resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });

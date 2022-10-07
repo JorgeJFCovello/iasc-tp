@@ -81,7 +81,15 @@ export default function ListPanel() {
         'my-custom-header': 'abcd',
       },
     });
-    webSocket.on('get-lists', (payload) => setList(JSON.parse(payload)));
+    webSocket.on('get-lists', (payload) => {
+      const newLists = payload.map((list, index) => ({
+        ...list,
+        creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
+        taskCount: list.items.length,
+        id: index,
+      }));
+      setList(newLists);
+    });
     setSocket(webSocket);
     setLoading(true);
     fetch('http://localhost:3000/api/list')
