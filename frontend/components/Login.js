@@ -9,9 +9,11 @@ export default function Login() {
             <Card>
                 <CardContent>
                     <Grid container spacing={2}>
-                        <h1>
-                            Login
-                        </h1>
+                        <Grid item xs={12}>
+                            <h1>
+                                TP IASC G2
+                            </h1>
+                        </Grid>
                         <Grid item xs={12}>
                             <TextField className='input' value={userName} label='Username' fullWidth onChange={(e) => setUserName(e.target.value)}></TextField>
                         </Grid>
