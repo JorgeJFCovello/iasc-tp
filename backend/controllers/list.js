@@ -110,7 +110,17 @@ const deleteTask = (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
-
+const deleteList = (req, resp) => {
+  try {
+    const { listName } = req.params;
+    const list = findListByName(listName);
+    lists.splice(lists.indexOf(list), 1);
+    resendLists();
+    resp.status(200).json(list);
+  } catch (err) {
+    resp.status(500).json({ message: err.message });
+  }
+};
 module.exports = {
   create,
   update,
@@ -119,4 +129,5 @@ module.exports = {
   generateTask,
   markTask,
   deleteTask,
+  deleteList,
 };
