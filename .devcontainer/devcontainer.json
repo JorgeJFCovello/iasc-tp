@@ -6,9 +6,9 @@
     ],
     "runArgs": [],
     "settings": {
-        "terminal.integrated.shell.linux": "/bin/bash"
+        "terminal.integrated.shell.linux": "/bin/sh"
     },
     "extensions": [
-        "github.copilot"
+        "GitHub.copilot"
     ]
 }

@@ -1,0 +1,24 @@
+{
+  "name": "iasc-tp",
+  "version": "1.0.0",
+  "description": "1 Contexto\r 2 Requerimientos\r 3 Las tecnologías\r 4 Formato de entrega y evaluación",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JorgeJFCovello/iasc-tp.git"
+  },
+  "author": "JorgeJFCovello",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JorgeJFCovello/iasc-tp/issues"
+  },
+  "homepage": "https://github.com/JorgeJFCovello/iasc-tp#readme",
+  "dependencies": {
+    "express": "^4.18.1",
+    "socketio": "^1.0.0"
+  }
+}

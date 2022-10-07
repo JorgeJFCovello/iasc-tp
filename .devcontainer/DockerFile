@@ -1,4 +1,3 @@
 FROM node:alpine
 RUN npm install -g nodemon
-RUN npm install -g express
-RUN npm install -g socketio
+RUN npm i
