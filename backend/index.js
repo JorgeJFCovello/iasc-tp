@@ -1,6 +1,6 @@
 const express = require('express');
 const routes = require('./routes');
-const { createClient } = require('redis');
+const { initRedis } = require('./utils/redis');
 const socketCache = require('./utils/sockets');
 const app = express();
 const port = 8080;
@@ -19,17 +19,6 @@ io.on('connection', (socket) => {
   socketCache[connectionData] = socket;
 });
 
-const client = createClient({ url: 'redis://default:redispw@localhost:49153' });
-
-client.on('error', (err) => console.log('Redis Client Error', err));
-const initRedis = () =>
-  client
-    .connect()
-    .then(() => console.log('Connected to redis'))
-    .catch((err) => {
-      console.log('Error conecting redis', err);
-      setTimeout(initRedis, 60000);
-    });
 initRedis();
 app.use(express.json());
 app.use('/api', routes);
