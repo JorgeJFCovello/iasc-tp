@@ -19,9 +19,12 @@ export default function Login() {
   const loginAndRedirect = async () => {
     try {
       const options = {
-        body: {
+        body: JSON.stringify({
           username,
           password,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
         },
         method: 'POST',
       };
