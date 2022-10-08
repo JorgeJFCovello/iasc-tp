@@ -15,7 +15,7 @@ class List {
     const newList = this.items.filter((item) => item.name !== taskName);
     const item = this.items.find((item) => item.name === taskName);
     newList.splice(index, 0, item);
-    this.items = newList;
+    this.items = newList.map((item, index) => ({ ...item, index: index + 1 }));
   }
 }
 

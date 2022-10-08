@@ -55,6 +55,7 @@ const update = (req, resp) => {
       list.insertInIndex(item.name, order - 1);
     }
     resendLists();
+    refreshList(list);
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });

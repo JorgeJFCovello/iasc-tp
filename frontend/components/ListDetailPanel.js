@@ -49,22 +49,57 @@ export default function ListPanel(props) {
       .then((data) => {
         console.log('tasks: ', data);
         setTasks(
-          data.items.map((item, index) => ({
+          data.items.map((item) => ({
             ...item,
             creationDate: moment(item.creationDate).format('DD/MM/YYYY'),
-            id: index,
+            id: item.index,
           }))
         );
       })
       .catch(setError)
       .finally(() => setLoading(false));
   }, []);
+  const onCellEditCommit = (params) => {
+    console.log('params: ', params);
+    const json =
+      params.field === 'index'
+        ? { order: Number(params.value) }
+        : { name: params.value };
+    const options = {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(json),
+    };
+    console.log('tasks reviewing', tasks, json);
+    fetch(
+      `http://localhost:3000/api/list/${listName}/task/${
+        tasks.find((task) => task.id === params.id).name
+      }`,
+      options
+    );
+  };
   const columns = [
-    { field: 'name', width: 300, headerName: 'List name' },
+    {
+      field: 'index',
+      width: 70,
+      sortable: true,
+      headerName: '',
+      editable: true,
+    },
+    {
+      field: 'name',
+      sortable: false,
+      width: 300,
+      headerName: 'Task name',
+      editable: true,
+    },
     {
       field: 'done',
       width: 280,
       headerName: 'Done',
+      sortable: false,
       renderCell: (params) => {
         const changeValue = (e) => {
           e.stopPropagation();
@@ -79,7 +114,12 @@ export default function ListPanel(props) {
         return <Checkbox checked={params.row.done} onChange={changeValue} />;
       },
     },
-    { field: 'creationDate', width: 300, headerName: 'Creation Date' },
+    {
+      field: 'creationDate',
+      sortable: false,
+      width: 300,
+      headerName: 'Creation Date',
+    },
     {
       field: 'action',
       headerName: 'Options',
@@ -133,6 +173,7 @@ export default function ListPanel(props) {
               pageSize={pageSize}
               onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
               rowsPerPageOptions={[5, 10, 25, 50]}
+              onCellEditCommit={onCellEditCommit}
             />
           </CardContent>
           <CardActions>
