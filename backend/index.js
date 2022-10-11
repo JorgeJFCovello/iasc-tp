@@ -1,6 +1,7 @@
 const express = require('express');
 const routes = require('./routes');
 const { initRedis } = require('./utils/redis');
+const cookieParser = require('cookie-parser');
 const socketCache = require('./utils/sockets');
 const app = express();
 const port = 8080;
@@ -18,7 +19,7 @@ io.on('connection', (socket) => {
   connectionData = new Date().getTime().toString();
   socketCache[connectionData] = socket;
 });
-
+app.use(cookieParser());
 initRedis();
 app.use(express.json());
 app.use('/api', routes);

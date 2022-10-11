@@ -1,23 +1,34 @@
+const { saveUser } = require('../database/user');
 const List = require('../models/list');
 const User = require('../models/user');
+const { client: redis } = require('../utils/redis');
 const socketCache = require('../utils/sockets');
+const { getStringHash } = require('../utils/string');
+//TODO fix list in redis
+//TODO fix refresh list and users on redis
 
-const lists = [];
-const users = [];
-const saveList = (list) => lists.push(list);
-const findListByName = (listName) => {
-  return lists.find((list) => list.name === listName);
+const saveList = async (userhash, list) => {
+  const user = JSON.parse(await redis.get(userhash));
+  list.id = getStringHash();
+  user.lists.push(list.id);
+  await redis.set(list.id, list);
+  await saveUser(user);
 };
-const findUserByName = (name) => {
-  return users.find((user) => user.name === name);
+const findListByName = async (userhash, listName) => {
+  const user = JSON.parse(await redis.get(userhash));
+  return user.lists.find((list) => list.name === listName);
 };
 
-const shareList = (req, resp) => {
+const shareList = async (req, resp) => {
   try {
+    const { auth } = req.cookies;
     const { name, listName } = req.body;
-    const user = findUserByName(name);
-    const list = findListByName(listName);
-    user.addList(list);
+    const user = await redis
+      .get('users')
+      .find((user) => user.username === name);
+    const list = await findListByName(auth, listName);
+    user.addList(list.id);
+    await saveUser(user);
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -27,15 +38,21 @@ const refreshList = (list) =>
   Object.values(socketCache).forEach((socket) => {
     socket.emit(`get-lists-${list.name}`, list);
   });
-const resendLists = () =>
-  Object.values(socketCache).forEach((socket) => {
-    socket.emit('get-lists', lists);
-  });
-const create = (req, resp) => {
+const resendLists = async () => {
+  const lists = JSON.parse(await redis.get('lists'))(await redis.get('users'))
+    .filter((user) => user.lists.includes(list.id))
+    .forEach((user) => {
+      Object.values(socketCache).forEach((socket) => {
+        const userLists = lists.filter((list) => user.lists.includes(list.id));
+        socket.emit(`get-lists-${user.username}`, userLists);
+      });
+    });
+};
+const create = async (req, resp) => {
   try {
     const { name } = req.body;
     const list = new List(name);
-    saveList(list);
+    await saveList(list);
     resendLists();
     resp.status(200).json(list);
   } catch (err) {

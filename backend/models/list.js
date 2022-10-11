@@ -1,7 +1,8 @@
 class List {
-  constructor(nameList) {
+  constructor(nameList, id) {
     this.name = nameList;
     this.items = [];
+    this.id = id;
     this.creationDate = new Date();
   }
   add(item) {

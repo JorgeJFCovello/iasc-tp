@@ -1,24 +1,30 @@
 //set users in redis
 
-const User = require('../models/user');
+const { findByUserAndPass, saveUser } = require('../database/user');
+const { client: redis } = require('../utils/redis');
+const { getStringHash } = require('../utils/string');
 
-const users = [new User(1, 'pepe', 'pepe', 'pepe', 'pepe')];
-
-const findByUserAndPass = (username, password) => {
-  return users.find(
-    (user) => user.username === username && user.password === password
-  );
+const logout = async (req, resp) => {
+  const id = req.cookies.auth;
+  const user = await redis.get(id);
+  user.id = null;
+  await saveUser(user);
+  await redis.del(id);
+  resp.status(200).clearCookie('auth').json({ status: 'ok' });
 };
 
-const auth = (req, resp) => {
+const auth = async (req, resp) => {
   const { username, password } = req.body;
-  console.log(username, password);
-  const user = findByUserAndPass(username, password);
+  const user = await findByUserAndPass(username, password);
   if (user) {
-    resp.status(200).json({ message: 'Auth', status: 'ok' });
+    const logHash = `${user.username}_${getStringHash()}`;
+    user.id = logHash;
+    await redis.set(logHash, JSON.stringify(user));
+    await saveUser(user);
+    resp.status(200).cookie('auth', logHash).json({ status: 'ok' });
   } else {
     resp.status(401).json({ message: 'Invalid Credentials' });
   }
 };
 
-module.exports = { auth };
+module.exports = { auth, logout };
