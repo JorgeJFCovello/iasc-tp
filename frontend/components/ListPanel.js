@@ -19,38 +19,6 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 
-const columns = [
-  { field: 'name', width: 300, headerName: 'List name' },
-  { field: 'taskCount', width: 280, headerName: 'Tasks' },
-  { field: 'creationDate', width: 300, headerName: 'Creation Date' },
-  {
-    field: 'action',
-    headerName: 'Options',
-    sortable: false,
-    width: 300,
-    renderCell: (params) => {
-      const deleteList = (e) => {
-        e.stopPropagation();
-        const options = {
-          method: 'DELETE',
-        };
-        fetch('http://localhost:3000/api/list/' + params.row.name, options);
-      };
-      const seeListDetails = (e) => {
-        e.stopPropagation();
-        return Router.push('/lists/' + params.row.name);
-      };
-
-      return (
-        <div>
-          <Button onClick={seeListDetails}>See more</Button>
-          <Button onClick={deleteList}>Delete</Button>
-        </div>
-      );
-    },
-  },
-];
-
 export default function ListPanel() {
   const [lists, setList] = useState([]);
   const [pageSize, setPageSize] = useState(5);
@@ -59,7 +27,39 @@ export default function ListPanel() {
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  //useEffect para sacar las listas de un websocket
+
+  const columns = [
+    { field: 'name', width: 300, headerName: 'List name' },
+    { field: 'taskCount', width: 280, headerName: 'Tasks' },
+    { field: 'creationDate', width: 300, headerName: 'Creation Date' },
+    {
+      field: 'action',
+      headerName: 'Options',
+      sortable: false,
+      width: 300,
+      renderCell: (params) => {
+        const deleteList = (e) => {
+          e.stopPropagation();
+          const options = {
+            method: 'DELETE',
+          };
+          fetch('http://localhost:3000/api/list/' + params.row._id, options);
+        };
+        const seeListDetails = (e) => {
+          e.stopPropagation();
+          return Router.push('/lists/' + params.row._id);
+        };
+
+        return (
+          <div>
+            <Button onClick={seeListDetails}>See more</Button>
+            <Button onClick={deleteList}>Delete</Button>
+          </div>
+        );
+      },
+    },
+  ];
+
   React.useEffect(() => {
     const webSocket = io.connect('http://localhost:8080', {
       withCredentials: true,
@@ -72,6 +72,7 @@ export default function ListPanel() {
         ...list,
         creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
         taskCount: list.items.length,
+        _id: list.id,
         id: index,
       }));
       setList(newLists);
@@ -80,19 +81,20 @@ export default function ListPanel() {
     setLoading(true);
     fetch('http://localhost:3000/api/list')
       .then((res) => res.json())
-      .then((data) =>
-        setList(
-          data.map((list, index) => ({
-            ...list,
-            creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
-            taskCount: list.items.length,
-            id: index,
-          }))
-        )
-      )
+      .then((data) => {
+        const newLists = data.map((list, index) => ({
+          ...list,
+          _id: list.id,
+          creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
+          taskCount: list.items.length,
+          id: index,
+        }));
+        setList(newLists);
+      })
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
+
   const saveNewList = () => {
     const options = {
       method: 'POST',

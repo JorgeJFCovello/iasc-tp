@@ -12,14 +12,14 @@ const {
 const { auth, logout } = require('../controllers/user');
 
 router.get('/list', get);
-router.get('/list/:listName', getSpecific);
+router.get('/list/:listId', getSpecific);
 router.post('/list', create);
-router.post('/list/:listName/task', generateTask);
+router.post('/list/:listId/task', generateTask);
 router.post('/login', auth);
 router.post('/logout', logout);
-router.post('/list/:listName/task/:taskName', markTask);
-router.patch('/list/:listName/task/:taskName', update);
-router.delete('/list/:listName/task/:taskName', deleteTask);
-router.delete('/list/:listName', deleteList);
+router.post('/list/:listId/task/:taskName', markTask);
+router.patch('/list/:listId/task/:taskName', update);
+router.delete('/list/:listId/task/:taskName', deleteTask);
+router.delete('/list/:listId', deleteList);
 
 module.exports = router;

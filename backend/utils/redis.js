@@ -25,6 +25,9 @@ const initRedis = () =>
       );
     })
     .then(() => {
+      client.set('lists', '[]');
+    })
+    .then(() => {
       console.log('Connected to redis');
     })
     .catch((err) => {

@@ -17,9 +17,11 @@ import {
   TextField,
 } from '@mui/material';
 import moment from 'moment';
+import { Context } from '../libs/context';
 
 export default function ListPanel(props) {
-  const { listName } = props;
+  const { listId } = props;
+  console.log('id:?', listId);
   const [tasks, setTasks] = useState([]);
   const [pageSize, setPageSize] = useState(5);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
@@ -27,30 +29,17 @@ export default function ListPanel(props) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [socket, setSocket] = useState(null);
-
-  React.useEffect(() => {
-    const webSocket = io.connect('http://localhost:8080', {
-      withCredentials: true,
-    });
-    webSocket.on(`get-lists-${listName}`, (payload) => {
-      console.log(payload);
-      const newTasks = payload.items.map((item, index) => ({
-        ...item,
-        creationDate: moment(item.creationDate).format('DD/MM/YYYY'),
-        id: index,
-      }));
-      setTasks(newTasks);
-    });
-    setSocket(webSocket);
-
+  const [title, setTitle] = useState('');
+  const getlistData = () => {
     setLoading(true);
-    fetch('http://localhost:3000/api/list/' + listName)
+    fetch('http://localhost:3000/api/list/' + listId)
       .then((data) => data.json())
       .then((data) => {
-        console.log('tasks: ', data);
+        setTitle(data.name);
         setTasks(
           data.items.map((item) => ({
             ...item,
+            _id: item.id,
             creationDate: moment(item.creationDate).format('DD/MM/YYYY'),
             id: item.index,
           }))
@@ -58,7 +47,26 @@ export default function ListPanel(props) {
       })
       .catch(setError)
       .finally(() => setLoading(false));
+  };
+  React.useEffect(() => {
+    const webSocket = io.connect('http://localhost:8080', {
+      withCredentials: true,
+    });
+    webSocket.on(`get-lists-${listId}`, (payload) => {
+      console.log(payload);
+      const newTasks = payload.items.map((item, index) => ({
+        ...item,
+        _id: item.id,
+        creationDate: moment(item.creationDate).format('DD/MM/YYYY'),
+        id: index,
+      }));
+      setTasks(newTasks);
+    });
+    setSocket(webSocket);
+    getlistData();
   }, []);
+  React.useEffect(getlistData, [listId]);
+
   const onCellEditCommit = (params) => {
     console.log('params: ', params);
     const json =
@@ -72,9 +80,8 @@ export default function ListPanel(props) {
       },
       body: JSON.stringify(json),
     };
-    console.log('tasks reviewing', tasks, json);
     fetch(
-      `http://localhost:3000/api/list/${listName}/task/${
+      `http://localhost:3000/api/list/${listId}/task/${
         tasks.find((task) => task.id === params.id).name
       }`,
       options
@@ -107,7 +114,7 @@ export default function ListPanel(props) {
             method: 'POST',
           };
           fetch(
-            `http://localhost:3000/api/list/${listName}/task/${params.row.name}`,
+            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
             options
           );
         };
@@ -132,7 +139,7 @@ export default function ListPanel(props) {
             method: 'DELETE',
           };
           fetch(
-            `http://localhost:3000/api/list/${listName}/task/${params.row.name}`,
+            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
             options
           );
         };
@@ -154,8 +161,7 @@ export default function ListPanel(props) {
       },
       body: JSON.stringify({ name: newTaskName }),
     };
-    console.log('saving: ', newTaskName);
-    fetch(`http://localhost:3000/api/list/${listName}/task`, options)
+    fetch(`http://localhost:3000/api/list/${listId}/task`, options)
       .then(() => setOpenCreationDialog(false))
       .catch(setError)
       .finally(() => setLoading(false));
@@ -164,7 +170,7 @@ export default function ListPanel(props) {
     <Grid container justifyContent="center">
       <Grid item xs={8}>
         <Card>
-          <h1>{listName}</h1>
+          <h1>{title}</h1>
           <CardContent>
             <DataGrid
               style={{ height: 400, width: '100%' }}

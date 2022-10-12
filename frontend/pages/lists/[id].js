@@ -5,6 +5,5 @@ import { useRouter } from 'next/router';
 export default function ListDetailPage() {
   const router = useRouter();
   const { id } = router.query;
-  console.log('id: ', id);
-  return <ListDetailPanel listName={id} />;
+  return <ListDetailPanel listId={id} />;
 }

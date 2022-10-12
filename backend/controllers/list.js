@@ -7,27 +7,42 @@ const { getStringHash } = require('../utils/string');
 //TODO fix list in redis
 //TODO fix refresh list and users on redis
 
+const getUserLists = async (userhash) => {
+  const user = JSON.parse(await redis.get(userhash));
+  const lists = JSON.parse(await redis.get('lists'));
+  return lists.filter((list) => user.lists.includes(list.id));
+};
 const saveList = async (userhash, list) => {
   const user = JSON.parse(await redis.get(userhash));
-  list.id = getStringHash();
-  user.lists.push(list.id);
-  await redis.set(list.id, list);
+  const allLists = JSON.parse(await redis.get('lists'));
+  if (!list.id) {
+    list.id = getStringHash();
+    await redis.set('lists', JSON.stringify([...allLists, list]));
+    user.lists.push(list.id);
+  } else {
+    const index = allLists.findIndex((l) => l.id === list.id);
+    allLists[index] = list;
+    await redis.set('lists', JSON.stringify(allLists));
+  }
+  await redis.set(list.id, JSON.stringify(list));
   await saveUser(user);
 };
-const findListByName = async (userhash, listName) => {
+const findListById = async (userhash, listId) => {
   const user = JSON.parse(await redis.get(userhash));
-  return user.lists.find((list) => list.name === listName);
+  return JSON.parse(await redis.get('lists')).find(
+    (list) => user.lists.includes(list.id) && list.id === listId
+  );
 };
 
 const shareList = async (req, resp) => {
   try {
     const { auth } = req.cookies;
-    const { name, listName } = req.body;
+    const { name, listId } = req.body;
     const user = await redis
       .get('users')
       .find((user) => user.username === name);
-    const list = await findListByName(auth, listName);
-    user.addList(list.id);
+    const list = await findListById(auth, listId);
+    user.lists = [...user.lists, list.id];
     await saveUser(user);
     resp.status(200).json(list);
   } catch (err) {
@@ -39,8 +54,11 @@ const refreshList = (list) =>
     socket.emit(`get-lists-${list.name}`, list);
   });
 const resendLists = async () => {
-  const lists = JSON.parse(await redis.get('lists'))(await redis.get('users'))
-    .filter((user) => user.lists.includes(list.id))
+  const lists = JSON.parse(await redis.get('lists'));
+  JSON.parse(await redis.get('users'))
+    .filter((user) =>
+      user.lists.some((listId) => lists.map((list) => list.id).includes(listId))
+    )
     .forEach((user) => {
       Object.values(socketCache).forEach((socket) => {
         const userLists = lists.filter((list) => user.lists.includes(list.id));
@@ -51,19 +69,21 @@ const resendLists = async () => {
 const create = async (req, resp) => {
   try {
     const { name } = req.body;
+    const { auth } = req.cookies;
     const list = new List(name);
-    await saveList(list);
-    resendLists();
+    await saveList(auth, list);
+    await resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 };
-const update = (req, resp) => {
+const update = async (req, resp) => {
   try {
-    const { listName, taskName } = req.params;
+    const { listId, taskName } = req.params;
     const { name, order } = req.body;
-    const list = findListByName(listName);
+    const { auth } = req.cookies;
+    const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     if (name) {
       item.name = name;
@@ -71,37 +91,46 @@ const update = (req, resp) => {
     if (order) {
       list.insertInIndex(item.name, order - 1);
     }
-    resendLists();
+    await resendLists();
     refreshList(list);
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 };
-const get = (req, resp) => {
+const get = async (req, resp) => {
   try {
     const { limit, offset } = req.query;
+    const { auth } = req.cookies;
+    const lists = await getUserLists(auth);
     const list2show = lists.slice(offset, limit);
     resp.status(200).json(list2show);
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 };
-const getSpecific = (req, resp) => {
+const getSpecific = async (req, resp) => {
   try {
-    const { listName } = req.params;
-    const list = findListByName(listName);
+    const { listId } = req.params;
+    const { auth } = req.cookies;
+    const list = await findListById(auth, listId);
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 };
-const generateTask = (req, resp) => {
+const generateTask = async (req, resp) => {
   try {
-    const { listName } = req.params;
+    const { listId } = req.params;
     const { name } = req.body;
-    const list = findListByName(listName);
-    list.add({ name, done: false, index: list.items.length + 1 });
+    const { auth } = req.cookies;
+    console.log(listId, name, auth);
+    const list = await findListById(auth, listId);
+    list.items = [
+      ...list.items,
+      { name, done: false, index: list.items.length + 1 },
+    ];
+    saveList(auth, list);
     resendLists();
     refreshList(list);
     resp.status(200).json(list);
@@ -109,10 +138,11 @@ const generateTask = (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
-const markTask = (req, resp) => {
+const markTask = async (req, resp) => {
   try {
     const { listName, taskName } = req.params;
-    const list = findListByName(listName);
+    const { auth } = req.cookies;
+    const list = await findListById(auth, listName);
     const item = list.items.find((item) => item.name === taskName);
     item.done = !item.done;
     refreshList(list);
@@ -123,8 +153,9 @@ const markTask = (req, resp) => {
 };
 const deleteTask = (req, resp) => {
   try {
-    const { listName, taskName } = req.params;
-    const list = findListByName(listName);
+    const { listId, taskName } = req.params;
+    const { auth } = req.cookies;
+    const list = findListById(auth, listId);
     list.remove(taskName);
     refreshList(list);
     resendLists();
@@ -133,12 +164,14 @@ const deleteTask = (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
-const deleteList = (req, resp) => {
+const deleteList = async (req, resp) => {
   try {
-    const { listName } = req.params;
-    const list = findListByName(listName);
+    const { listId } = req.params;
+    const { auth } = req.cookies;
+    const lists = await getUserLists(auth);
+    const list = findListById(auth, listId);
     lists.splice(lists.indexOf(list), 1);
-    resendLists();
+    await resendLists();
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
