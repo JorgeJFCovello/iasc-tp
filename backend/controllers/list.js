@@ -4,8 +4,6 @@ const User = require('../models/user');
 const { client: redis } = require('../utils/redis');
 const socketCache = require('../utils/sockets');
 const { getStringHash } = require('../utils/string');
-//TODO fix list in redis
-//TODO fix refresh list and users on redis
 
 const getUserLists = async (userhash) => {
   const user = JSON.parse(await redis.get(userhash));
@@ -55,16 +53,12 @@ const refreshList = (list) =>
   });
 const resendLists = async () => {
   const lists = JSON.parse(await redis.get('lists'));
-  JSON.parse(await redis.get('users'))
-    .filter((user) =>
-      user.lists.some((listId) => lists.map((list) => list.id).includes(listId))
-    )
-    .forEach((user) => {
-      Object.values(socketCache).forEach((socket) => {
-        const userLists = lists.filter((list) => user.lists.includes(list.id));
-        socket.emit(`get-lists-${user.username}`, userLists);
-      });
+  JSON.parse(await redis.get('users')).forEach((user) => {
+    Object.values(socketCache).forEach((socket) => {
+      const userLists = lists.filter((list) => user.lists.includes(list.id));
+      socket.emit(`get-lists-${user.username}`, userLists);
     });
+  });
 };
 const create = async (req, resp) => {
   try {

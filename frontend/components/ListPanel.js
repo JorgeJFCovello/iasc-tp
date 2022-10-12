@@ -19,8 +19,9 @@ import {
 } from '@mui/material';
 import moment from 'moment';
 
-export default function ListPanel() {
+export default function ListPanel(props) {
   const [lists, setList] = useState([]);
+  const { username } = props;
   const [pageSize, setPageSize] = useState(5);
   const [newListName, setNewListName] = useState('');
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
@@ -63,11 +64,8 @@ export default function ListPanel() {
   React.useEffect(() => {
     const webSocket = io.connect('http://localhost:8080', {
       withCredentials: true,
-      extraHeaders: {
-        'my-custom-header': 'abcd',
-      },
     });
-    webSocket.on('get-lists', (payload) => {
+    webSocket.on(`get-lists-${username}`, (payload) => {
       const newLists = payload.map((list, index) => ({
         ...list,
         creationDate: moment(list.creationDate).format('DD/MM/YYYY'),

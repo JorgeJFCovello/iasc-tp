@@ -31,7 +31,7 @@ export default function Login() {
       const response = await fetch('http://localhost:3000/api/login', options);
       const data = await response.json();
       if (data.status === 'ok') {
-        setContext(data);
+        setContext({ data, username });
         Router.push('/lists');
       } else {
         throw new Error('Invalid credentials');
