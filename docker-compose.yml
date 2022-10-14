@@ -1,0 +1,21 @@
+version: '3.9'
+networks:
+  default:
+    driver: bridge
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - '3000:3000'
+  backend:
+    depends_on:
+      - redis
+    build: ./backend
+    ports:
+      - '8080:8080'
+  redis:
+    image: 'redis:alpine'
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    ports:
+      - '6379:6379'
