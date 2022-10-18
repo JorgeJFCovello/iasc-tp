@@ -6,11 +6,11 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8080/api/:path*',
+        destination: `${process.env.BACK_URL}/api/:path*`,
       },
       {
         source: '/socket.io/:path*',
-        destination: 'http://localhost:8080/socket.io/:path*',
+        destination: `${process.env.BACK_URL}/socket.io/:path*`,
       },
     ];
   },
