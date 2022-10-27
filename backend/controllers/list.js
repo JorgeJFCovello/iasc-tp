@@ -10,19 +10,22 @@ const getUserLists = async (userhash) => {
   const lists = JSON.parse(await redis.get('lists'));
   return lists.filter((list) => user.lists.includes(list.id));
 };
+
+const saveLists = async (lists) => {
+  await redis.set('lists', JSON.stringify(lists));
+};
 const saveList = async (userhash, list) => {
   const user = JSON.parse(await redis.get(userhash));
   let allLists = JSON.parse(await redis.get('lists'));
   if (!list.id) {
     allLists = [...allLists, list];
     list.id = getStringHash();
-    await redis.set('lists', JSON.stringify(allLists));
     user.lists.push(list.id);
   } else {
     const index = allLists.findIndex((l) => l.id === list.id);
     allLists[index] = list;
-    await redis.set('lists', JSON.stringify(allLists));
   }
+  await saveLists(allLists);
   await redis.set(list.id, JSON.stringify(list));
   await saveUser(user);
   return { user, lists: allLists };
@@ -53,7 +56,7 @@ const shareList = async (req, resp) => {
 };
 const refreshList = (list) =>
   Object.values(socketCache).forEach((socket) => {
-    socket.emit(`get-lists-${list.name}`, list);
+    socket.emit(`get-lists-${list.id}`, list);
   });
 const resendLists = async () => {
   const lists = JSON.parse(await redis.get('lists'));
@@ -94,6 +97,7 @@ const update = async (req, resp) => {
     }
     await resendLists();
     refreshList(list);
+
     resp.status(200).json(list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
@@ -125,27 +129,33 @@ const generateTask = async (req, resp) => {
     const { listId } = req.params;
     const { name } = req.body;
     const { auth } = req.cookies;
-    console.log(listId, name, auth);
     const list = await findListById(auth, listId);
-    list.items = [
-      ...list.items,
-      { name, done: false, index: list.items.length + 1 },
-    ];
-    saveList(auth, list);
-    resendLists();
-    refreshList(list);
-    resp.status(200).json(list);
+    console.log('list', list);
+    if (list) {
+      list.items = [
+        ...list.items,
+        { name, done: false, index: list.items.length + 1 },
+      ];
+      await saveList(auth, list);
+      await resendLists();
+      refreshList(list);
+      console.log('guarde todo');
+      resp.status(200).json(list);
+    } else {
+      resp.status(404).json({ msg: 'List not found' });
+    }
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
 };
 const markTask = async (req, resp) => {
   try {
-    const { listName, taskName } = req.params;
+    const { listId, taskName } = req.params;
     const { auth } = req.cookies;
-    const list = await findListById(auth, listName);
+    const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     item.done = !item.done;
+    await saveList(auth, list);
     refreshList(list);
     resp.status(200).json(item);
   } catch (err) {
@@ -170,8 +180,9 @@ const deleteList = async (req, resp) => {
     const { listId } = req.params;
     const { auth } = req.cookies;
     const lists = await getUserLists(auth);
-    const list = findListById(auth, listId);
+    const list = await findListById(auth, listId);
     lists.splice(lists.indexOf(list), 1);
+    await saveLists(lists);
     await resendLists();
     resp.status(200).json(list);
   } catch (err) {
