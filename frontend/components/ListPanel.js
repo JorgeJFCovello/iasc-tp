@@ -3,31 +3,21 @@ import { useState } from 'react';
 import * as React from 'react';
 import Router from 'next/router';
 import io from 'socket.io-client';
-import {
-  Alert,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Grid,
-  TextField,
-} from '@mui/material';
+import { Button, Card, CardActions, CardContent, Grid } from '@mui/material';
 import moment from 'moment';
+import CreateListDialog from './CreateListDialog';
+import ShareListDialog from './ShareListDialog';
 
 export default function ListPanel(props) {
   const [lists, setList] = useState([]);
   const { username } = props;
   const [pageSize, setPageSize] = useState(5);
-  const [newListName, setNewListName] = useState('');
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
+  const [openShareDialog, setOpenShareDialog] = useState(false);
   const [socket, setSocket] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [list2Share, setList2Share] = useState('');
 
   const columns = [
     { field: 'name', width: 300, headerName: 'List name' },
@@ -50,9 +40,14 @@ export default function ListPanel(props) {
           e.stopPropagation();
           return Router.push('/lists/' + params.row._id);
         };
-
+        const openShareOptions = (e) => {
+          e.stopPropagation();
+          setList2Share(params.row._id);
+          setOpenShareDialog(true);
+        };
         return (
           <div>
+            <Button onClick={openShareOptions}>Share</Button>
             <Button onClick={seeListDetails}>See more</Button>
             <Button onClick={deleteList}>Delete</Button>
           </div>
@@ -93,23 +88,6 @@ export default function ListPanel(props) {
       .finally(() => setLoading(false));
   }, []);
 
-  const saveNewList = () => {
-    const options = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name: newListName }),
-    };
-    fetch('http://localhost:3000/api/list', options)
-      .then(() => {
-        setOpenCreationDialog(false);
-      })
-      .catch((err) => {
-        setError(err);
-      })
-      .finally(() => setLoading(false));
-  };
   return (
     <Grid container justifyContent="center">
       <Grid item xs={8}>
@@ -132,42 +110,19 @@ export default function ListPanel(props) {
           </CardActions>
         </Card>
       </Grid>
-      <Dialog open={openCreationDialog}>
-        <DialogTitle>Create new list</DialogTitle>
-        <DialogContent>
-          <Grid container justifyContent="center">
-            {error && (
-              <Grid item xs={12}>
-                <Alert severity="error">{error}</Alert>
-              </Grid>
-            )}
-            {loading ? (
-              <CircularProgress />
-            ) : (
-              <Grid item xs={8}>
-                <TextField
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  label="List Name"
-                />
-              </Grid>
-            )}
-          </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            variant="outlined"
-            color="secondary"
-            disabled={loading}
-            onClick={() => setOpenCreationDialog(false)}
-          >
-            Cancel
-          </Button>
-          <Button variant="outlined" disabled={loading} onClick={saveNewList}>
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {
+        <CreateListDialog
+          openDialog={openCreationDialog}
+          onClose={() => setOpenCreationDialog(false)}
+        />
+      }
+      {
+        <ShareListDialog
+          listName={list2Share}
+          openDialog={openShareDialog}
+          onClose={() => setOpenShareDialog(false)}
+        />
+      }
     </Grid>
   );
 }

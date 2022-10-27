@@ -12,6 +12,10 @@ const logout = async (req, resp) => {
   await redis.del(id);
   resp.status(200).clearCookie('auth').json({ status: 'ok' });
 };
+const listUsers = async (req, resp) => {
+  const users = await redis.get('users');
+  resp.status(200).json(users);
+};
 
 const auth = async (req, resp) => {
   const { username, password } = req.body;
@@ -27,4 +31,4 @@ const auth = async (req, resp) => {
   }
 };
 
-module.exports = { auth, logout };
+module.exports = { auth, logout, listUsers };

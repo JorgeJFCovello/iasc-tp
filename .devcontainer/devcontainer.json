@@ -1,14 +1,10 @@
 {
-    "name": "tp-notes-iasc-all",
-    "dockerFile": "Dockerfile",
-    "appPort": [
-        3000, 8080
-    ],
-    "runArgs": [],
-    "settings": {
-        "terminal.integrated.shell.linux": "/bin/sh"
-    },
-    "extensions": [
-        "GitHub.copilot"
-    ]
+  "name": "tp-notes-iasc-all",
+  "dockerFile": "Dockerfile",
+  "appPort": [3000, 8080],
+  "runArgs": [],
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/sh"
+  },
+  "extensions": ["GitHub.copilot"]
 }
