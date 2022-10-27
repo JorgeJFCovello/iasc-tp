@@ -36,13 +36,12 @@ const ShareListDialog = (props) => {
   }, []);
 
   const shareWith = () => {
-    fetch('http://localhost:3000/api/user', {
+    fetch(`http://localhost:3000/api/list/${listName}/share`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        listId: listName,
         name: user,
       }),
     })

@@ -57,6 +57,7 @@ export default function ListPanel(props) {
   ];
 
   React.useEffect(() => {
+    console.log('username', username);
     const webSocket = io.connect('http://localhost:8080', {
       withCredentials: true,
     });
@@ -68,6 +69,7 @@ export default function ListPanel(props) {
         _id: list.id,
         id: index,
       }));
+      console.log('llegaron cosas');
       setList(newLists);
     });
     setSocket(webSocket);
