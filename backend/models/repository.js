@@ -1,6 +1,6 @@
 class Repository {
-  constructor(){
-    this.users = []
+  constructor(users){
+    this.users = users
   }
   saveUser(user){
     const lastUserID = this.getLastID()
@@ -8,15 +8,14 @@ class Repository {
     this.users.push(user)
   }
   findByUserAndPass(username, password){
-    const user = this.users.find((usrname, pass) => usrname === username && pass === password);
+    const user = this.users.find((user) => user.username === username && user.password === password)
     return user
   }
   getLastID(){
-    if (this.users.length() > 0) {
-      const lastUser = this.users.pop()
-      return lastUser.id
-    }
-    return 0
+    return this.users.length() > 0 ? this.users[this.users.length() - 1].id : 0
+  }
+  getUsers(){
+    return this.users
   }
 }
 
