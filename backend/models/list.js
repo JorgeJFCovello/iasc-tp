@@ -1,4 +1,11 @@
 class List {
+  static fromObject(obj) {
+    if (!obj) return null;
+    const list = new List(obj.name, obj.id);
+    list.items = obj.items;
+    list.creationDate = obj.creationDate;
+    return list;
+  }
   constructor(nameList, id) {
     this.name = nameList;
     this.items = [];
