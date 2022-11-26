@@ -32,7 +32,7 @@ const CreateListDialog = (props) => {
       },
       body: JSON.stringify({ name: newListName }),
     };
-    fetch('http://localhost:3000/api/list', options)
+    fetch('/api/list', options)
       .then(() => {
         setNewListName('');
         onClose();

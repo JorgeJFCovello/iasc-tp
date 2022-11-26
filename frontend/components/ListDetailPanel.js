@@ -32,7 +32,7 @@ export default function ListPanel(props) {
   const [title, setTitle] = useState('');
   const getlistData = () => {
     setLoading(true);
-    fetch('http://localhost:3000/api/list/' + listId)
+    fetch(`/api/list/${listId}`)
       .then((data) => data.json())
       .then((data) => {
         setTitle(data.name);
@@ -49,7 +49,7 @@ export default function ListPanel(props) {
       .finally(() => setLoading(false));
   };
   React.useEffect(() => {
-    const webSocket = io.connect('http://localhost:8080', {
+    const webSocket = io.connect(process.env.BACK_URL, {
       withCredentials: true,
     });
     webSocket.on(`get-lists-${listId}`, (payload) => {
@@ -81,7 +81,7 @@ export default function ListPanel(props) {
       body: JSON.stringify(json),
     };
     fetch(
-      `http://localhost:3000/api/list/${listId}/task/${
+      `/api/list/${listId}/task/${
         tasks.find((task) => task.id === params.id).name
       }`,
       options
@@ -113,10 +113,7 @@ export default function ListPanel(props) {
           const options = {
             method: 'POST',
           };
-          fetch(
-            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
-            options
-          );
+          fetch(`/api/list/${listId}/task/${params.row.name}`, options);
         };
         return <Checkbox checked={params.row.done} onChange={changeValue} />;
       },
@@ -138,10 +135,7 @@ export default function ListPanel(props) {
           const options = {
             method: 'DELETE',
           };
-          fetch(
-            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
-            options
-          );
+          fetch(`/api/list/${listId}/task/${params.row.name}`, options);
         };
         return (
           <div>
@@ -161,7 +155,7 @@ export default function ListPanel(props) {
       },
       body: JSON.stringify({ name: newTaskName }),
     };
-    fetch(`http://localhost:3000/api/list/${listId}/task`, options)
+    fetch(`/api/list/${listId}/task`, options)
       .then(() => setOpenCreationDialog(false))
       .catch(setError)
       .finally(() => setLoading(false));

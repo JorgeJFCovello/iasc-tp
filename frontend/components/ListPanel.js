@@ -34,7 +34,7 @@ export default function ListPanel(props) {
           const options = {
             method: 'DELETE',
           };
-          fetch('http://localhost:3000/api/list/' + params.row._id, options);
+          fetch(`/api/list/${params.row._id}`, options);
         };
         const seeListDetails = (e) => {
           e.stopPropagation();
@@ -58,7 +58,7 @@ export default function ListPanel(props) {
 
   React.useEffect(() => {
     console.log('username', username);
-    const webSocket = io.connect('http://localhost:8080', {
+    const webSocket = io.connect(process.env.BACK_URL, {
       withCredentials: true,
     });
     webSocket.on(`get-lists-${username}`, (payload) => {
@@ -74,7 +74,7 @@ export default function ListPanel(props) {
     });
     setSocket(webSocket);
     setLoading(true);
-    fetch('http://localhost:3000/api/list')
+    fetch(`/api/list`)
       .then((res) => res.json())
       .then((data) => {
         const newLists = data.map((list, index) => ({

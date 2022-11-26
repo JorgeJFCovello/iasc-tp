@@ -21,7 +21,7 @@ const ShareListDialog = (props) => {
   const [loading, setLoading] = useState(false);
   React.useEffect(() => {
     setLoading(true);
-    fetch('http://localhost:3000/api/user', {
+    fetch(`/api/user`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ const ShareListDialog = (props) => {
   }, []);
 
   const shareWith = () => {
-    fetch(`http://localhost:3000/api/list/${listName}/share`, {
+    fetch(`/api/list/${listName}/share`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
