@@ -1,7 +1,6 @@
 import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
-import Router from 'next/router';
 import io from 'socket.io-client';
 import {
   Button,
@@ -17,7 +16,7 @@ import {
   TextField,
 } from '@mui/material';
 import moment from 'moment';
-import { Context } from '../libs/context';
+import { env } from '../next.config';
 
 export default function ListPanel(props) {
   const { listId } = props;
@@ -32,7 +31,7 @@ export default function ListPanel(props) {
   const [title, setTitle] = useState('');
   const getlistData = () => {
     setLoading(true);
-    fetch('http://localhost:3000/api/list/' + listId)
+    fetch(`/api/list/${listId}`)
       .then((data) => data.json())
       .then((data) => {
         setTitle(data.name);
@@ -49,11 +48,10 @@ export default function ListPanel(props) {
       .finally(() => setLoading(false));
   };
   React.useEffect(() => {
-    const webSocket = io.connect('http://localhost:8080', {
+    const webSocket = io.connect('/', {
       withCredentials: true,
     });
     webSocket.on(`get-lists-${listId}`, (payload) => {
-      console.log(payload);
       const newTasks = payload.items.map((item, index) => ({
         ...item,
         _id: item.id,
@@ -81,7 +79,7 @@ export default function ListPanel(props) {
       body: JSON.stringify(json),
     };
     fetch(
-      `http://localhost:3000/api/list/${listId}/task/${
+      `/api/list/${listId}/task/${
         tasks.find((task) => task.id === params.id).name
       }`,
       options
@@ -113,10 +111,7 @@ export default function ListPanel(props) {
           const options = {
             method: 'POST',
           };
-          fetch(
-            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
-            options
-          );
+          fetch(`/api/list/${listId}/task/${params.row.name}`, options);
         };
         return <Checkbox checked={params.row.done} onChange={changeValue} />;
       },
@@ -138,10 +133,7 @@ export default function ListPanel(props) {
           const options = {
             method: 'DELETE',
           };
-          fetch(
-            `http://localhost:3000/api/list/${listId}/task/${params.row.name}`,
-            options
-          );
+          fetch(`/api/list/${listId}/task/${params.row.name}`, options);
         };
         return (
           <div>
@@ -161,7 +153,7 @@ export default function ListPanel(props) {
       },
       body: JSON.stringify({ name: newTaskName }),
     };
-    fetch(`http://localhost:3000/api/list/${listId}/task`, options)
+    fetch(`/api/list/${listId}/task`, options)
       .then(() => setOpenCreationDialog(false))
       .catch(setError)
       .finally(() => setLoading(false));

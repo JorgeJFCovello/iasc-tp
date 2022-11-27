@@ -4,13 +4,20 @@ const { initDatabase } = require('./utils/database');
 const cookieParser = require('cookie-parser');
 const socketCache = require('./utils/sockets');
 const app = express();
+const appWS = express();
 const port = 8080;
+const portWS = 8081;
 const cors = require('cors');
 app.use(cors());
-const http = require('http').Server(app);
+app.use(cookieParser());
+initDatabase();
+app.use(express.json());
+app.use('/api', routes);
+const http = require('http').Server(appWS);
 const io = require('socket.io')(http, {
+  path: '/',
   cors: {
-    origin: 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -19,8 +26,5 @@ io.on('connection', (socket) => {
   connectionData = new Date().getTime().toString();
   socketCache[connectionData] = socket;
 });
-app.use(cookieParser());
-initDatabase();
-app.use(express.json());
-app.use('/api', routes);
-http.listen(port, () => console.log(`App listening on port ${port}!`));
+http.listen(portWS, () => console.log(`WS listening on port ${portWS}!`));
+app.listen(port, () => console.log(`App listening on port ${port}!`));

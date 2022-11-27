@@ -1,8 +1,5 @@
-import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
-import Router from 'next/router';
-import io from 'socket.io-client';
 import {
   Alert,
   Button,
@@ -32,7 +29,7 @@ const CreateListDialog = (props) => {
       },
       body: JSON.stringify({ name: newListName }),
     };
-    fetch('http://localhost:3000/api/list', options)
+    fetch('/api/list', options)
       .then(() => {
         setNewListName('');
         onClose();
