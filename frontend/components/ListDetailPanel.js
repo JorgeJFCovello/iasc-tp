@@ -1,7 +1,6 @@
 import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
-import Router from 'next/router';
 import io from 'socket.io-client';
 import {
   Button,
@@ -17,7 +16,7 @@ import {
   TextField,
 } from '@mui/material';
 import moment from 'moment';
-import { Context } from '../libs/context';
+import { env } from '../next.config';
 
 export default function ListPanel(props) {
   const { listId } = props;
@@ -49,11 +48,10 @@ export default function ListPanel(props) {
       .finally(() => setLoading(false));
   };
   React.useEffect(() => {
-    const webSocket = io.connect(process.env.BACK_URL, {
+    const webSocket = io.connect('/', {
       withCredentials: true,
     });
     webSocket.on(`get-lists-${listId}`, (payload) => {
-      console.log(payload);
       const newTasks = payload.items.map((item, index) => ({
         ...item,
         _id: item.id,

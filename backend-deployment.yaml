@@ -29,6 +29,7 @@ spec:
           name: backend
           ports:
             - containerPort: 8080
+            - containerPort: 8081
           resources: {}
       restartPolicy: Always
 status: {}

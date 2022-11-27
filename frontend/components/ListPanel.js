@@ -7,6 +7,7 @@ import { Button, Card, CardActions, CardContent, Grid } from '@mui/material';
 import moment from 'moment';
 import CreateListDialog from './CreateListDialog';
 import ShareListDialog from './ShareListDialog';
+import { env } from '../next.config';
 
 export default function ListPanel(props) {
   const [lists, setList] = useState([]);
@@ -57,8 +58,7 @@ export default function ListPanel(props) {
   ];
 
   React.useEffect(() => {
-    console.log('username', username);
-    const webSocket = io.connect(process.env.BACK_URL, {
+    const webSocket = io.connect('/', {
       withCredentials: true,
     });
     webSocket.on(`get-lists-${username}`, (payload) => {
