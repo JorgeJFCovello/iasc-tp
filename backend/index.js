@@ -1,6 +1,6 @@
 const express = require('express');
 const routes = require('./routes');
-const { initRedis } = require('./utils/redis');
+const { initDatabase } = require('./utils/database');
 const cookieParser = require('cookie-parser');
 const socketCache = require('./utils/sockets');
 const app = express();
@@ -20,7 +20,7 @@ io.on('connection', (socket) => {
   socketCache[connectionData] = socket;
 });
 app.use(cookieParser());
-initRedis();
+initDatabase();
 app.use(express.json());
 app.use('/api', routes);
 http.listen(port, () => console.log(`App listening on port ${port}!`));

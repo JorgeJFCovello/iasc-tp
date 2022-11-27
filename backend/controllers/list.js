@@ -1,22 +1,22 @@
 const { saveUser } = require('../database/user');
 const List = require('../models/list');
 const User = require('../models/user');
-const { client: redis } = require('../utils/redis');
+const { client: db } = require('../utils/database');
 const socketCache = require('../utils/sockets');
 const { getStringHash } = require('../utils/string');
 
 const getUserLists = async (userhash) => {
-  const user = JSON.parse(await redis.get(userhash));
-  const lists = JSON.parse(await redis.get('lists'));
+  const user = JSON.parse(await db.get(userhash));
+  const lists = JSON.parse(await db.get('lists'));
   return lists.filter((list) => user.lists.includes(list.id));
 };
 
 const saveLists = async (lists) => {
-  await redis.set('lists', JSON.stringify(lists));
+  await db.set('lists', JSON.stringify(lists));
 };
 const saveList = async (userhash, list) => {
-  const user = JSON.parse(await redis.get(userhash));
-  let allLists = JSON.parse(await redis.get('lists'));
+  const user = JSON.parse(await db.get(userhash));
+  let allLists = JSON.parse(await db.get('lists')) || [];
   if (!list.id) {
     allLists = [...allLists, list];
     list.id = getStringHash();
@@ -26,14 +26,16 @@ const saveList = async (userhash, list) => {
     allLists[index] = list;
   }
   await saveLists(allLists);
-  await redis.set(list.id, JSON.stringify(list));
+  await db.set(list.id, JSON.stringify(list));
   await saveUser(user);
   return { user, lists: allLists };
 };
 const findListById = async (userhash, listId) => {
-  const user = JSON.parse(await redis.get(userhash));
-  return JSON.parse(await redis.get('lists')).find(
-    (list) => user.lists.includes(list.id) && list.id === listId
+  const user = JSON.parse(await db.get(userhash));
+  return List.fromObject(
+    JSON.parse(await db.get('lists')).find(
+      (list) => user.lists.includes(list.id) && list.id === listId
+    )
   );
 };
 
@@ -42,7 +44,7 @@ const shareList = async (req, resp) => {
     const { auth } = req.cookies;
     const { listId } = req.params;
     const { name } = req.body;
-    const user = JSON.parse(await redis.get('users')).find(
+    const user = JSON.parse(await db.get('users')).find(
       (user) => user.username === name
     );
     const list = await findListById(auth, listId);
@@ -59,8 +61,8 @@ const refreshList = (list) =>
     socket.emit(`get-lists-${list.id}`, list);
   });
 const resendLists = async () => {
-  const lists = JSON.parse(await redis.get('lists'));
-  JSON.parse(await redis.get('users')).forEach((user) => {
+  const lists = JSON.parse(await db.get('lists'));
+  JSON.parse(await db.get('users')).forEach((user) => {
     const userLists = lists.filter((list) => user.lists.includes(list.id));
     resendListsForUser(user.username, userLists);
   });
@@ -162,15 +164,16 @@ const markTask = async (req, resp) => {
     resp.status(500).json({ message: err.message });
   }
 };
-const deleteTask = (req, resp) => {
+const deleteTask = async (req, resp) => {
   try {
     const { listId, taskName } = req.params;
     const { auth } = req.cookies;
-    const list = findListById(auth, listId);
+    const list = await findListById(auth, listId);
     list.remove(taskName);
     refreshList(list);
     resendLists();
     resp.status(200).json(list);
+    saveList(auth, list);
   } catch (err) {
     resp.status(500).json({ message: err.message });
   }
