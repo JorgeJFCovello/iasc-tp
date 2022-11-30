@@ -2,7 +2,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 const socketCache = require('./utils/sockets');
 const app = express();
-const port = 8080;
+const port = 5000;
 const cors = require('cors');
 app.use(cors());
 app.use(cookieParser());

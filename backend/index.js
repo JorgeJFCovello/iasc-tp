@@ -15,7 +15,7 @@ const {
   deleteList,
   shareList,
 } = require('./controllers/list');
-const { listUsers, updateUser } = require('./controllers/user');
+const { listUsers, updateUser, logout, auth } = require('./controllers/user');
 const socketCache = require('./utils/sockets');
 socketCache.proxySockect = socket;
 socket.on('/list', async (payload) => await get(payload));
@@ -28,5 +28,7 @@ socket.on('delete-task', async (payload) => await deleteTask(payload));
 socket.on('delete-list', async (payload) => await deleteList(payload));
 socket.on('get-users', async (payload) => await listUsers(payload));
 socket.on('update-users', async (payload) => await updateUser(payload));
+socket.on('logout-user', async (payload) => await logout(payload));
+socket.on('update-user-auth', async (payload) => await auth(payload));
 socket.on('share-list', async (payload) => await shareList(payload));
 console.log('running backend');

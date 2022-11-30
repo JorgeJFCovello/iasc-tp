@@ -11,8 +11,6 @@ const logout = async (payload) => {
   user.id = null;
   await saveUser(user);
   await db.del(id);
-  //hacer esto en el proxy
-  //resp.status(200).clearCookie('auth').json({ status: 'ok' });
 };
 const listUsers = async () => {
   const users = await db.get('users');
@@ -27,8 +25,6 @@ const auth = async (payload) => {
     user.id = logHash;
     await db.set(logHash, JSON.stringify(user));
     await updateUser(user);
-    //hacer esto en el proxy en el evento user-updated
-    //resp.status(200).cookie('auth', logHash).json({ status: 'ok' });
   } else {
     console.error('Invalid Credentials', JSON.stringify(payload));
   }
