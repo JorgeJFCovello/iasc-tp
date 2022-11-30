@@ -42,16 +42,6 @@ const initLeaderElection = (socket) => {
       });
   }
 };
-const pingOtherFollowers = () => {
-  while (leader) {
-    setTimeout(() => {
-      //esto no tiene que ser asi adentro del while, tenemos que conectarnos a todos antes y despues hacemos el emit por cada uno
-      const followerSocket = socketClient.connect(process.env.BACKEND_URL);
-      socketCache['followers'] = [...socketCache.followers, followerSocket];
-      followerSocket.emit('leader');
-    }, 3000);
-  }
-};
 io.on('disconnection', (socket) => {
   console.log('disconnected');
   initLeaderElection(socket);
@@ -62,6 +52,11 @@ io.on('leader', (socket) => {
 });
 //socket client
 const socketClient = require('socket.io-client');
+while (leader) {
+  setTimeout(() => {
+    socketClient.connect(process.env.BACKEND_URL);
+    socketClient.emit('leader');
+  }, 3000);
+}
 http.listen(portWS, () => console.log(`WS listening on port ${portWS}!`));
 app.listen(port, () => console.log(`App listening on port ${port}!`));
-pingOtherFollowers();
