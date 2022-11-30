@@ -4,7 +4,7 @@ const User = require('../models/user');
 const { client: db } = require('../utils/database');
 const socketCache = require('../utils/sockets');
 const { getStringHash } = require('../utils/string');
-
+const socket = socketCache.proxySockect;
 const getUserLists = async (userhash) => {
   const user = JSON.parse(await db.get(userhash));
   const lists = JSON.parse(await db.get('lists'));
@@ -39,11 +39,11 @@ const findListById = async (userhash, listId) => {
   );
 };
 
-const shareList = async (req, resp) => {
+const shareList = async (payload) => {
   try {
-    const { auth } = req.cookies;
-    const { listId } = req.params;
-    const { name } = req.body;
+    const { auth } = payload;
+    const { listId } = payload;
+    const { name } = payload;
     const user = JSON.parse(await db.get('users')).find(
       (user) => user.username === name
     );
@@ -53,13 +53,10 @@ const shareList = async (req, resp) => {
     resendLists();
     resp.status(200).json(list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const refreshList = (list) =>
-  Object.values(socketCache).forEach((socket) => {
-    socket.emit(`get-lists-${list.id}`, list);
-  });
+const refreshList = (list) => socket.emit(`get-lists-${list.id}`, list);
 const resendLists = async () => {
   const lists = JSON.parse(await db.get('lists'));
   JSON.parse(await db.get('users')).forEach((user) => {
@@ -67,28 +64,23 @@ const resendLists = async () => {
     resendListsForUser(user.username, userLists);
   });
 };
-const resendListsForUser = (username, lists) => {
-  Object.values(socketCache).forEach((socket) =>
-    socket.emit(`get-lists-${username}`, lists)
-  );
-};
-const create = async (req, resp) => {
+const resendListsForUser = (username, lists) =>
+  socket.emit(`get-lists-${username}`, lists);
+
+const create = async (payload) => {
   try {
-    const { name } = req.body;
-    const { auth } = req.cookies;
+    const { name } = payload.body;
+    const { auth } = payload.cookies;
     const list = new List(name);
     const { user, lists } = await saveList(auth, list);
     resendListsForUser(user.username, lists);
-    resp.status(200).json(list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err);
   }
 };
-const update = async (req, resp) => {
+const update = async (payload) => {
   try {
-    const { listId, taskName } = req.params;
-    const { name, order } = req.body;
-    const { auth } = req.cookies;
+    const { listId, taskName, name, order, auth } = payload;
     const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     if (name) {
@@ -99,38 +91,34 @@ const update = async (req, resp) => {
     }
     await resendLists();
     refreshList(list);
-
-    resp.status(200).json(list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const get = async (req, resp) => {
+const get = async (payload) => {
   try {
-    const { limit, offset } = req.query;
-    const { auth } = req.cookies;
+    const { limit, offset, auth } = payload;
     const lists = await getUserLists(auth);
     const list2show = lists.slice(offset, limit);
     resp.status(200).json(list2show);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const getSpecific = async (req, resp) => {
+const getSpecific = async (payload) => {
   try {
-    const { listId } = req.params;
-    const { auth } = req.cookies;
+    const { listId, auth } = payload;
     const list = await findListById(auth, listId);
-    resp.status(200).json(list);
+    refreshList(list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const generateTask = async (req, resp) => {
+const generateTask = async (payload) => {
   try {
-    const { listId } = req.params;
-    const { name } = req.body;
-    const { auth } = req.cookies;
+    const { listId } = payload;
+    const { name } = payload;
+    const { auth } = payload;
     const list = await findListById(auth, listId);
     console.log('list', list);
     if (list) {
@@ -147,13 +135,13 @@ const generateTask = async (req, resp) => {
       resp.status(404).json({ msg: 'List not found' });
     }
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const markTask = async (req, resp) => {
+const markTask = async (payload) => {
   try {
-    const { listId, taskName } = req.params;
-    const { auth } = req.cookies;
+    const { listId, taskName } = payload;
+    const { auth } = payload;
     const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     item.done = !item.done;
@@ -161,13 +149,13 @@ const markTask = async (req, resp) => {
     refreshList(list);
     resp.status(200).json(item);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const deleteTask = async (req, resp) => {
+const deleteTask = async (payload) => {
   try {
-    const { listId, taskName } = req.params;
-    const { auth } = req.cookies;
+    const { listId, taskName } = payload;
+    const { auth } = payload;
     const list = await findListById(auth, listId);
     list.remove(taskName);
     refreshList(list);
@@ -175,13 +163,13 @@ const deleteTask = async (req, resp) => {
     resp.status(200).json(list);
     saveList(auth, list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
-const deleteList = async (req, resp) => {
+const deleteList = async (payload) => {
   try {
-    const { listId } = req.params;
-    const { auth } = req.cookies;
+    const { listId } = payload;
+    const { auth } = payload;
     const lists = await getUserLists(auth);
     const list = await findListById(auth, listId);
     lists.splice(lists.indexOf(list), 1);
@@ -189,7 +177,7 @@ const deleteList = async (req, resp) => {
     await resendLists();
     resp.status(200).json(list);
   } catch (err) {
-    resp.status(500).json({ message: err.message });
+    console.err(err.message);
   }
 };
 module.exports = {
