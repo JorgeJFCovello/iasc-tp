@@ -31,4 +31,4 @@ socket.on('update-users', async (payload) => await updateUser(payload));
 socket.on('logout-user', async (payload) => await logout(payload));
 socket.on('update-user-auth', async (payload) => await auth(payload));
 socket.on('share-list', async (payload) => await shareList(payload));
-console.log('running backend');
+console.log('backend running');
