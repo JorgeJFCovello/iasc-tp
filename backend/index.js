@@ -26,37 +26,5 @@ io.on('connection', (socket) => {
   connectionData = new Date().getTime().toString();
   socketCache[connectionData] = socket;
 });
-let leader = true;
-const markMyselfAsLeader = () => (leader = true);
-const markMyselfAsFollower = () => (leader = false);
-const initLeaderElection = (socket) => {
-  if (!leader) {
-    const isLeader = socketCache['leader'] === socket;
-    if (!isLeader) return;
-    markMyselfAsLeader();
-    //a los sockets que no estan desconectados les envio que voy a ser lider
-    Object.values(socketCache)
-      .filter((ws) => ws !== socket)
-      .forEach((ws) => {
-        ws.emit('leader');
-      });
-  }
-};
-io.on('disconnection', (socket) => {
-  console.log('disconnected');
-  initLeaderElection(socket);
-});
-io.on('leader', (socket) => {
-  markMyselfAsFollower();
-  socketCache['leader'] = socket;
-});
-//socket client
-const socketClient = require('socket.io-client');
-while (leader) {
-  setTimeout(() => {
-    socketClient.connect(process.env.BACKEND_URL);
-    socketClient.emit('leader');
-  }, 3000);
-}
 http.listen(portWS, () => console.log(`WS listening on port ${portWS}!`));
 app.listen(port, () => console.log(`App listening on port ${port}!`));
