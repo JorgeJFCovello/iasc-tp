@@ -4,3 +4,4 @@ frontend/package-lock.json
 backend/package-lock.json
 proxy/package-lock.json
 proxy/node_modules/
+*/yarn.lock
