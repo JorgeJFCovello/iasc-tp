@@ -17,9 +17,8 @@ router.post('/list', (req, res) => {
 }
 });
 router.post('/list/:listId/task', (req, res) => { 
-redirectToBackend('create-task' , req)
-
-try{
+  try{
+  redirectToBackend('create-task' , req)
   res.status(200).json({msg: 'ok'})
 } catch {
   res.status(500).json({msg: 'internal error'})
