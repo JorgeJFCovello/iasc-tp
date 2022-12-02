@@ -12,5 +12,11 @@ const findByUserAndPass = async (username, password) => {
     (user) => user.password === password && user.username === username
   );
 };
+const findByUsername = async (username) => {
+  const user = await db.get('users');
+  return JSON.parse(user).find(
+    (user) => user.username === username
+  );
+};
 
-module.exports = { saveUser, findByUserAndPass };
+module.exports = { saveUser, findByUserAndPass, findByUsername };

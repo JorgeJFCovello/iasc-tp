@@ -17,7 +17,7 @@ const {
 } = require('./controllers/list');
 const { listUsers, updateUser, logout, auth } = require('./controllers/user');
 const socketCache = require('./utils/sockets');
-socketCache.proxySockect = socket;
+socketCache.proxySocket = socket;
 socket.on('/list', async (payload) => await get(payload));
 socket.on('get-especific-list', async (payload) => await getSpecific(payload));
 socket.on('create-list', async (payload) => await create(payload));

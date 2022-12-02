@@ -1,6 +1,6 @@
 //set users in redis
 
-const { findByUserAndPass, saveUser } = require('../database/user');
+const { findByUserAndPass, saveUser, findByUsername } = require('../database/user');
 const { client: db } = require('../utils/database');
 const { getStringHash } = require('../utils/string');
 const socketCache = require('../utils/sockets');
@@ -18,12 +18,11 @@ const listUsers = async () => {
 };
 
 const auth = async (payload) => {
-  const { username, password } = payload;
+  const { username, password, id} = payload;
   const user = await findByUserAndPass(username, password);
   if (user) {
-    const logHash = `${user.username}_${getStringHash()}`;
-    user.id = logHash;
-    await db.set(logHash, JSON.stringify(user));
+    user.id = id;
+    await db.set(id, JSON.stringify(user));
     await updateUser(user);
   } else {
     console.error('Invalid Credentials', JSON.stringify(payload));
@@ -32,9 +31,9 @@ const auth = async (payload) => {
 const updateUser = async (payload) => {
   const user = await findByUsername(payload.username);
   if (user) {
-    saveUser(payload);
+    await saveUser(payload);
   }
-  socket.emit('user-updated', user);
+  socketCache.proxySocket.emit('user-updated', user);
 };
 
 module.exports = { auth, logout, listUsers, updateUser };
