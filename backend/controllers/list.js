@@ -40,7 +40,7 @@ const findListById = async (userhash, listId) => {
 
 const shareList = async (payload) => {
   try {
-    const { auth } = payload;
+    const { auth } = payload.cookies;
     const { listId } = payload;
     const { name } = payload;
     const user = JSON.parse(await db.get('users')).find(
@@ -83,7 +83,11 @@ const create = async (payload) => {
 };
 const update = async (payload) => {
   try {
-    const { listId, taskName, name, order, auth } = payload;
+    const {
+      params: { listId, taskName },
+      body: { name, order },
+      cookies: { auth },
+    } = payload;
     const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     if (name) {
@@ -100,7 +104,10 @@ const update = async (payload) => {
 };
 const get = async (payload) => {
   try {
-    const { limit, offset, auth } = payload;
+    const {
+      query: { limit, offset },
+      cookies: { auth },
+    } = payload;
     const lists = await getUserLists(auth);
     const list2show = lists.slice(offset, limit);
     resp.status(200).json(list2show);
@@ -110,7 +117,10 @@ const get = async (payload) => {
 };
 const getSpecific = async (payload) => {
   try {
-    const { listId, auth } = payload;
+    const {
+      params: { listId },
+      cookies: { auth },
+    } = payload;
     const list = await findListById(auth, listId);
     refreshList(list);
   } catch (err) {
@@ -119,9 +129,9 @@ const getSpecific = async (payload) => {
 };
 const generateTask = async (payload) => {
   try {
-    const { listId } = payload;
-    const { name } = payload;
-    const { auth } = payload;
+    const { listId } = payload.params;
+    const { name } = payload.body;
+    const { auth } = payload.cookies;
     const list = await findListById(auth, listId);
     console.log('list', list);
     if (list) {
@@ -143,8 +153,8 @@ const generateTask = async (payload) => {
 };
 const markTask = async (payload) => {
   try {
-    const { listId, taskName } = payload;
-    const { auth } = payload;
+    const { listId, taskName } = payload.params;
+    const { auth } = payload.cookies;
     const list = await findListById(auth, listId);
     const item = list.items.find((item) => item.name === taskName);
     item.done = !item.done;
@@ -157,8 +167,8 @@ const markTask = async (payload) => {
 };
 const deleteTask = async (payload) => {
   try {
-    const { listId, taskName } = payload;
-    const { auth } = payload;
+    const { listId, taskName } = payload.params;
+    const { auth } = payload.cookies;
     const list = await findListById(auth, listId);
     list.remove(taskName);
     refreshList(list);
@@ -171,8 +181,8 @@ const deleteTask = async (payload) => {
 };
 const deleteList = async (payload) => {
   try {
-    const { listId } = payload;
-    const { auth } = payload;
+    const { listId } = payload.params;
+    const { auth } = payload.cookies;
     const lists = await getUserLists(auth);
     const list = await findListById(auth, listId);
     lists.splice(lists.indexOf(list), 1);
