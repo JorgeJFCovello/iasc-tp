@@ -7,20 +7,6 @@ const logout = async (req, resp) => {
   resp.status(200).clearCookie('auth').json({ status: 'ok' });
 };
 const activeLists = [];
-const redirectEventsToAll = (eventName, additionalStep) => {
-  const sockets = getSocketsWithoutServer();
-  sockets.forEach((socket) =>
-    socket.on(eventName, (payload) => {
-      console.log('recibi evento posta posta', eventName);
-      getSocketsWithoutServer().forEach((socket) =>
-        socket.emit(eventName, payload)
-      );
-      if (additionalStep) {
-        additionalStep(payload);
-      }
-    })
-  );
-};
 const auth = async (req, resp) => {
   const { username, password } = req.body;
   const logHash = `${username}_${getStringHash()}`;
@@ -39,7 +25,7 @@ const auth = async (req, resp) => {
       );
     });
   });
-  Object.values(socketCache).forEach((socket) =>
+  getSocketsWithoutServer().forEach((socket) =>
     socket.emit('update-user-auth', { username, password, id: logHash })
   );
   resp.status(200).cookie('auth', logHash).json({ status: 'ok' });

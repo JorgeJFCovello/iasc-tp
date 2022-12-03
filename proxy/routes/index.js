@@ -1,10 +1,7 @@
 const router = require('express').Router();
+const { createList } = require('../controllers/list');
 const { auth, logout } = require('../controllers/user');
-const { getSocketsWithoutServer } = require('../utils/sockets');
-const redirectToBackend = (eventName, payload) =>
-  getSocketsWithoutServer().forEach((socket) =>
-    socket.emit(eventName, payload)
-  );
+const { redirectToBackend } = require('../utils/sockets');
 
 const redirect = (event, req, res) => {
   try {
@@ -26,7 +23,7 @@ router.get('/list/:listId', (req, res) =>
 );
 router.post('/login', auth);
 router.post('/logout', logout);
-router.post('/list', (req, res) => redirect('create-list', req, res));
+router.post('/list', createList);
 router.post('/list/:listId/task', (req, res) =>
   redirect('create-task', req, res)
 );

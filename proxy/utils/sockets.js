@@ -1,5 +1,10 @@
 const socketCache = {};
 const getSocketsWithoutServer = () => {
-  return Object.values(socketCache);
+  return Object.values(socketCache).filter((val) => !!val);
 };
-module.exports = { socketCache, getSocketsWithoutServer };
+
+const redirectToBackend = (eventName, payload) =>
+  getSocketsWithoutServer().forEach((socket) =>
+    socket.emit(eventName, payload)
+  );
+module.exports = { socketCache, getSocketsWithoutServer, redirectToBackend };
