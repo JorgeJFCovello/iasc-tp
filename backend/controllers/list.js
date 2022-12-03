@@ -73,6 +73,7 @@ const create = async (payload) => {
     const list = new List(name);
     const { user, lists } = await saveList(auth, list);
     resendListsForUser(user.username, lists);
+    console.log("llegue hasta el create del back", user.username, lists)
   } catch (err) {
     console.error(err);
   }

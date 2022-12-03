@@ -19,6 +19,7 @@ const io = require('socket.io')(http, {
     credentials: true,
   },
 });
+socketCache.serverSocket = io
 io.on('connection', (socket) => {
   console.log('Received a connection')
   connectionData = new Date().getTime().toString();
