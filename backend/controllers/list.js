@@ -70,7 +70,6 @@ const resendLists = async () => {
 };
 const resendListsForUser = (username, lists) => {
   socketCache.proxySocket.emit(`get-lists-${username}`, lists);
-  console.log('event emitted', `get-lists-${username}`, lists);
 };
 
 const create = async (payload) => {

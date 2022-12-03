@@ -10,6 +10,7 @@ import {
 import Router from 'next/router';
 import { useContext, useState } from 'react';
 import { Context } from '../libs/context';
+import { initSocket } from '../libs/socket';
 
 export default function Login() {
   const [username, setusername] = useState('');
@@ -32,6 +33,7 @@ export default function Login() {
       const data = await response.json();
       if (data.status === 'ok') {
         setContext({ data, username });
+        initSocket('/');
         Router.push('/lists');
       } else {
         throw new Error('Invalid credentials');

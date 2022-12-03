@@ -7,6 +7,7 @@ import { Button, Card, CardActions, CardContent, Grid } from '@mui/material';
 import moment from 'moment';
 import CreateListDialog from './CreateListDialog';
 import ShareListDialog from './ShareListDialog';
+import { socketCache } from '../libs/socket';
 import { env } from '../next.config';
 
 export default function ListPanel(props) {
@@ -58,9 +59,7 @@ export default function ListPanel(props) {
   ];
 
   React.useEffect(() => {
-    const webSocket = io.connect('/', {
-      withCredentials: true,
-    });
+    const webSocket = socketCache.backendConnection;
     webSocket.on(`get-lists-${username}`, (payload) => {
       const newLists = payload.map((list, index) => ({
         ...list,
@@ -75,17 +74,6 @@ export default function ListPanel(props) {
     setSocket(webSocket);
     setLoading(true);
     fetch(`/api/list`)
-      .then((res) => res.json())
-      .then((data) => {
-        const newLists = data.map((list, index) => ({
-          ...list,
-          _id: list.id,
-          creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
-          taskCount: list.items.length,
-          id: index,
-        }));
-        setList(newLists);
-      })
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
