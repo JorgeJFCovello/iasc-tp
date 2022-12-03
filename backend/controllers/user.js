@@ -1,10 +1,13 @@
 //set users in redis
 
-const { findByUserAndPass, saveUser, findByUsername } = require('../database/user');
+const {
+  findByUserAndPass,
+  saveUser,
+  findByUsername,
+} = require('../database/user');
 const { client: db } = require('../utils/database');
 const { getStringHash } = require('../utils/string');
 const socketCache = require('../utils/sockets');
-const socket = socketCache.proxySocket;
 const logout = async (payload) => {
   const id = payload.auth;
   const user = await db.get(id);
@@ -14,11 +17,11 @@ const logout = async (payload) => {
 };
 const listUsers = async () => {
   const users = await db.get('users');
-  socket.emit('users', users);
+  socketCache.proxySocket.emit('users', users);
 };
 
 const auth = async (payload) => {
-  const { username, password, id} = payload;
+  const { username, password, id } = payload;
   const user = await findByUserAndPass(username, password);
   if (user) {
     user.id = id;

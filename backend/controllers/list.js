@@ -1,4 +1,4 @@
-const { saveUser } = require('../database/user');
+const { saveUser, findUserByHash } = require('../database/user');
 const List = require('../models/list');
 const User = require('../models/user');
 const { client: db } = require('../utils/database');
@@ -110,7 +110,8 @@ const get = async (payload) => {
     } = payload;
     const lists = await getUserLists(auth);
     const list2show = lists.slice(offset, limit);
-    resp.status(200).json(list2show);
+    const user = await findUserByHash(auth);
+    resendListsForUser(user.username, list2show);
   } catch (err) {
     console.error(err.message);
   }

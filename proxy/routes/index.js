@@ -5,14 +5,10 @@ const redirectToBackend = (eventName, payload) =>
   getSocketsWithoutServer().forEach((socket) =>
     socket.emit(eventName, payload)
   );
-/* router.get('/list', get);
-router.get('/user', listUsers);
-router.get('/list/:listId', getSpecific); */
-router.post('/login', auth);
-router.post('/logout', logout);
-router.post('/list', (req, res) => {
+
+const redirect = (event, req, res) => {
   try {
-    redirectToBackend('create-list', {
+    redirectToBackend(event, {
       body: req.body,
       cookies: req.cookies,
       params: req.params,
@@ -20,87 +16,32 @@ router.post('/list', (req, res) => {
     });
     res.status(200).json({ msg: 'ok' });
   } catch (err) {
-    console.log('err', err);
     res.status(500).json({ msg: 'internal error' });
   }
-});
-router.post('/list/:listId/task', (req, res) => {
-  try {
-    redirectToBackend('create-task', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
-router.post('/list/:listId/task/:taskName', (req, res) => {
-  try {
-    redirectToBackend('mark-task', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
-router.post('/list/:listId/share', (req, res) => {
-  try {
-    redirectToBackend('share-list', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
-router.patch('/list/:listId/task/:taskName', (req, res) => {
-  try {
-    redirectToBackend('update-task', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
-router.delete('/list/:listId/task/:taskName', (req, res) => {
-  try {
-    redirectToBackend('delete-task', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
-router.delete('/list/:listId', (req, res) => {
-  try {
-    redirectToBackend('delete-list', {
-      body: req.body,
-      cookies: req.cookies,
-      params: req.params,
-      query: req.query,
-    });
-    res.status(200).json({ msg: 'ok' });
-  } catch {
-    res.status(500).json({ msg: 'internal error' });
-  }
-});
+};
+router.get('/list', (req, res) => redirect('/list', req, res));
+router.get('/user', (req, res) => redirect('get-users', req, res));
+router.get('/list/:listId', (req, res) =>
+  redirect('get-especific-list', req, res)
+);
+router.post('/login', auth);
+router.post('/logout', logout);
+router.post('/list', (req, res) => redirect('create-list', req, res));
+router.post('/list/:listId/task', (req, res) =>
+  redirect('create-task', req, res)
+);
+router.post('/list/:listId/task/:taskName', (req, res) =>
+  redirect('mark-task', req, res)
+);
+router.post('/list/:listId/share', (req, res) =>
+  redirect('share-list', req, res)
+);
+router.patch('/list/:listId/task/:taskName', (req, res) =>
+  redirect('update-task', req, res)
+);
+router.delete('/list/:listId/task/:taskName', (req, res) =>
+  redirect('delete-task', req, res)
+);
+router.delete('/list/:listId', (req, res) => redirect('delete-list', req, res));
 
 module.exports = router;
