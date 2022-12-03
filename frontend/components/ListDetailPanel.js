@@ -6,6 +6,7 @@ import {
   Card,
   CardActions,
   CardContent,
+  CardHeader,
   Checkbox,
   Dialog,
   DialogActions,
@@ -14,11 +15,13 @@ import {
   Grid,
   TextField,
 } from '@mui/material';
+import BackIcon from '@mui/icons-material/ArrowBack';
 import moment from 'moment';
 import { socketCache } from '../libs/socket';
+import Router from 'next/router';
+import { LoginOutlined } from '@mui/icons-material';
 export default function ListPanel(props) {
   const { listId } = props;
-  console.log('id:?', listId);
   const [tasks, setTasks] = useState([]);
   const [pageSize, setPageSize] = useState(5);
   const [openCreationDialog, setOpenCreationDialog] = useState(false);
@@ -62,7 +65,6 @@ export default function ListPanel(props) {
   React.useEffect(getlistData, [listId]);
 
   const onCellEditCommit = (params) => {
-    console.log('params: ', params);
     const json =
       params.field === 'index'
         ? { order: Number(params.value) }
@@ -158,6 +160,24 @@ export default function ListPanel(props) {
     <Grid container justifyContent="center">
       <Grid item xs={8}>
         <Card>
+          <Grid container justifyContent="space-between">
+            <Button
+              style={{ margin: '10px' }}
+              variant="outlined"
+              onClick={() => Router.push('/lists')}
+              startIcon={<BackIcon />}
+            >
+              Go back to lists
+            </Button>
+            <Button
+              style={{ margin: '10px' }}
+              variant="outlined"
+              onClick={() => Router.push('/')}
+              startIcon={<LoginOutlined />}
+            >
+              logout
+            </Button>
+          </Grid>
           <h1>{title}</h1>
           <CardContent>
             <DataGrid

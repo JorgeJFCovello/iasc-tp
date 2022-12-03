@@ -9,6 +9,7 @@ import CreateListDialog from './CreateListDialog';
 import ShareListDialog from './ShareListDialog';
 import { socketCache } from '../libs/socket';
 import { env } from '../next.config';
+import { LoginOutlined } from '@mui/icons-material';
 
 export default function ListPanel(props) {
   const [lists, setList] = useState([]);
@@ -82,7 +83,17 @@ export default function ListPanel(props) {
     <Grid container justifyContent="center">
       <Grid item xs={8}>
         <Card>
-          <h1>Todo Lists</h1>
+          <Grid container justifyContent="space-between">
+            <h2 style={{ margin: '10px' }}>Todo Lists</h2>
+            <Button
+              style={{ margin: '10px' }}
+              variant="outlined"
+              onClick={() => Router.push('/')}
+              startIcon={<LoginOutlined />}
+            >
+              logout
+            </Button>
+          </Grid>
           <CardContent>
             <DataGrid
               style={{ height: 400, width: '100%' }}
