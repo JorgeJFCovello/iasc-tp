@@ -1,6 +1,6 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const socketCache = require('./utils/sockets');
+const { socketCache } = require('./utils/sockets');
 const app = express();
 const appWS = express();
 const port = 5000;
@@ -9,7 +9,7 @@ const cors = require('cors');
 app.use(cors());
 app.use(cookieParser());
 app.use(express.json());
-app.use("/api", require('./routes/index'))
+app.use('/api', require('./routes/index'));
 const http = require('http').Server(appWS);
 const io = require('socket.io')(http, {
   path: '/',
@@ -19,9 +19,8 @@ const io = require('socket.io')(http, {
     credentials: true,
   },
 });
-socketCache.serverSocket = io
 io.on('connection', (socket) => {
-  console.log('Received a connection')
+  console.log('Received a connection');
   connectionData = new Date().getTime().toString();
   socketCache[connectionData] = socket;
 });

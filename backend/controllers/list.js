@@ -55,7 +55,8 @@ const shareList = async (payload) => {
     console.error(err.message);
   }
 };
-const refreshList = (list) => socketCache.proxySocket.emit(`get-lists-${list.id}`, list);
+const refreshList = (list) =>
+  socketCache.proxySocket.emit(`get-lists-${list.id}`, list);
 const resendLists = async () => {
   const lists = JSON.parse(await db.get('lists'));
   JSON.parse(await db.get('users')).forEach((user) => {
@@ -63,8 +64,10 @@ const resendLists = async () => {
     resendListsForUser(user.username, userLists);
   });
 };
-const resendListsForUser = (username, lists) =>
+const resendListsForUser = (username, lists) => {
   socketCache.proxySocket.emit(`get-lists-${username}`, lists);
+  console.log('event emitted', `get-lists-${username}`, lists);
+};
 
 const create = async (payload) => {
   try {
@@ -73,7 +76,7 @@ const create = async (payload) => {
     const list = new List(name);
     const { user, lists } = await saveList(auth, list);
     resendListsForUser(user.username, lists);
-    console.log("llegue hasta el create del back", user.username, lists)
+    console.log('llegue hasta el create del back', user.username, lists);
   } catch (err) {
     console.error(err);
   }
