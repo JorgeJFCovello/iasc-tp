@@ -45,8 +45,8 @@ const findListById = async (userhash, listId) => {
 const shareList = async (payload) => {
   try {
     const { auth } = payload.cookies;
-    const { listId } = payload;
-    const { name } = payload;
+    const { listId } = payload.params;
+    const { name } = payload.body;
     const user = JSON.parse(await db.get('users')).find(
       (user) => user.username === name
     );
