@@ -23,6 +23,7 @@ io.on('connection', (socket) => {
   console.log('Received a connection');
   connectionData = new Date().getTime().toString();
   socketCache[socket.id] = socket;
+  socket.on('users', (payload) => socket.broadcast.emit('users', payload));
   socket.on('disconnect', () => {
     console.log('Disconection!!');
     socketCache[socket.id] = undefined;
