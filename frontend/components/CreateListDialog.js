@@ -14,7 +14,6 @@ import {
   Grid,
   TextField,
 } from '@mui/material';
-import moment from 'moment';
 
 const CreateListDialog = (props) => {
   const { openDialog, onClose } = props;

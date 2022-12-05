@@ -7,7 +7,9 @@ import { Button, Card, CardActions, CardContent, Grid } from '@mui/material';
 import moment from 'moment';
 import CreateListDialog from './CreateListDialog';
 import ShareListDialog from './ShareListDialog';
+import { socketCache } from '../libs/socket';
 import { env } from '../next.config';
+import { LoginOutlined } from '@mui/icons-material';
 
 export default function ListPanel(props) {
   const [lists, setList] = useState([]);
@@ -58,9 +60,7 @@ export default function ListPanel(props) {
   ];
 
   React.useEffect(() => {
-    const webSocket = io.connect('/', {
-      withCredentials: true,
-    });
+    const webSocket = socketCache.backendConnection;
     webSocket.on(`get-lists-${username}`, (payload) => {
       const newLists = payload.map((list, index) => ({
         ...list,
@@ -75,17 +75,6 @@ export default function ListPanel(props) {
     setSocket(webSocket);
     setLoading(true);
     fetch(`/api/list`)
-      .then((res) => res.json())
-      .then((data) => {
-        const newLists = data.map((list, index) => ({
-          ...list,
-          _id: list.id,
-          creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
-          taskCount: list.items.length,
-          id: index,
-        }));
-        setList(newLists);
-      })
       .catch((err) => setError(err))
       .finally(() => setLoading(false));
   }, []);
@@ -94,7 +83,17 @@ export default function ListPanel(props) {
     <Grid container justifyContent="center">
       <Grid item xs={8}>
         <Card>
-          <h1>Todo Lists</h1>
+          <Grid container justifyContent="space-between">
+            <h2 style={{ margin: '10px' }}>Todo Lists</h2>
+            <Button
+              style={{ margin: '10px' }}
+              variant="outlined"
+              onClick={() => Router.push('/')}
+              startIcon={<LoginOutlined />}
+            >
+              logout
+            </Button>
+          </Grid>
           <CardContent>
             <DataGrid
               style={{ height: 400, width: '100%' }}

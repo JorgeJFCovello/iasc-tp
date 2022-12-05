@@ -12,6 +12,7 @@ import {
   MenuItem,
   Select,
 } from '@mui/material';
+import { socketCache } from '../libs/socket';
 
 const ShareListDialog = (props) => {
   const { openDialog, onClose, listName } = props;
@@ -20,6 +21,11 @@ const ShareListDialog = (props) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   React.useEffect(() => {
+    const socket = socketCache.backendConnection;
+    socket.on('users', (payload) => {
+      console.log('llego', payload);
+      setShareOptions(JSON.parse(payload));
+    });
     setLoading(true);
     fetch(`/api/user`, {
       method: 'GET',
@@ -28,10 +34,6 @@ const ShareListDialog = (props) => {
       },
     })
       .then((data) => data.json())
-      .then((data) => {
-        setShareOptions(JSON.parse(data));
-      })
-      .catch(setError)
       .finally(() => setLoading(false));
   }, []);
 
@@ -87,7 +89,7 @@ const ShareListDialog = (props) => {
           Cancel
         </Button>
         <Button variant="outlined" disabled={loading} onClick={shareWith}>
-          Create
+          Share
         </Button>
       </DialogActions>
     </Dialog>

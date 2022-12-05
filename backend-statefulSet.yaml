@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert
+    kompose.version: 1.26.1 (a9d05d509)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: backend
+  name: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert
+        kompose.version: 1.26.1 (a9d05d509)
+      creationTimestamp: null
+      labels:
+        io.kompose.network: 'true'
+        io.kompose.service: backend
+    spec:
+      containers:
+        - image: jferc1310/iasc-k8s-backend:latest
+          name: backend
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+          resources: {}
+      restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: backend-pvc
+      spec:
+        accessModes: ['ReadWriteOnce']
+        storageClassName: 'standard'
+        resources:
+          requests:
+            storage: 1Gi
+status: {}
