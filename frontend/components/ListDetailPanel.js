@@ -172,7 +172,11 @@ export default function ListPanel(props) {
             <Button
               style={{ margin: '10px' }}
               variant="outlined"
-              onClick={() => Router.push('/')}
+              onClick={() => {
+                fetch(`/api/logout`).finally(() => {
+                  Router.push('/');
+                });
+              }}
               startIcon={<LoginOutlined />}
             >
               logout

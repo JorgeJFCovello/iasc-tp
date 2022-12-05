@@ -2,7 +2,7 @@ const { getStringHash } = require('../utils/string');
 const { socketCache, getSocketsWithoutServer } = require('../utils/sockets');
 const logout = async (req, resp) => {
   Object.values(socketCache).forEach((socket) =>
-    socket.emit('logout', req.cookies)
+    socket.emit('logout-user', { cookies: req.cookies })
   );
   resp.status(200).clearCookie('auth').json({ status: 'ok' });
 };
