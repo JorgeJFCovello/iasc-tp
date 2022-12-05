@@ -28,6 +28,10 @@ io.on('connection', (socket) => {
     console.log('Disconection!!');
     socketCache[socket.id] = undefined;
   });
+  socket.on('sync-db-needed', () => socket.broadcast.emit('sync-db'));
+  socket.on('sync-db-data', (payload) =>
+    socket.broadcast.emit('sync-db-data-requested', payload)
+  );
 });
 app.listen(port, () => console.log(`WS listening on port ${port}!`));
 http.listen(portWS, () => console.log(`WS listening on port ${portWS}!`));
