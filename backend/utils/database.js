@@ -1,6 +1,10 @@
 require('dotenv').config();
 const User = require('../models/user');
-const data = {};
+let data = {};
+const setData = (newData) => {
+  data = newData;
+};
+const getData = () => data;
 const initDatabase = () =>
   (data.users = JSON.stringify([
     // id, name, email, password, username)
@@ -12,4 +16,4 @@ const initDatabase = () =>
 //use async/await to replicate redis behaviour
 const get = async (key) => data[key] || null;
 const set = async (key, value) => (data[key] = value);
-module.exports = { initDatabase, client: { get, set } };
+module.exports = { initDatabase, client: { get, set }, setData, getData };
