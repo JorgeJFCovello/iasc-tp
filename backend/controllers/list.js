@@ -51,10 +51,11 @@ const shareList = async (payload) => {
       (user) => user.username === name
     );
     const list = await findListById(auth, listId);
-    user.lists = [...user.lists, list.id];
-    await saveUser(user);
-    resendLists();
-    resp.status(200).json(list);
+    if (user && !user.lists.includes(listId) && list) {
+      user.lists = [...user.lists, list.id];
+      await saveUser(user);
+      await resendLists();
+    }
   } catch (err) {
     console.error(err.message);
   }
