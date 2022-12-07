@@ -16,4 +16,5 @@ const initDatabase = () =>
 //use async/await to replicate redis behaviour
 const get = async (key) => data[key] || null;
 const set = async (key, value) => (data[key] = value);
-module.exports = { initDatabase, client: { get, set }, setData, getData };
+const del = async (key) => (data[key] = undefined);
+module.exports = { initDatabase, client: { get, set, del }, setData, getData };

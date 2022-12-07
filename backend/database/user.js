@@ -4,7 +4,9 @@ const saveUser = async (user) => {
   const userIndex = users.findIndex((u) => u.username === user.username);
   users[userIndex] = user;
   await db.set('users', JSON.stringify(users));
-  await db.set(user.id, JSON.stringify(user));
+  if (user.id) {
+    await db.set(user.id, user.username);
+  }
 };
 const findByUserAndPass = async (username, password) => {
   const user = await db.get('users');
@@ -17,8 +19,8 @@ const findByUsername = async (username) => {
   return JSON.parse(user).find((user) => user.username === username);
 };
 const findUserByHash = async (userhash) => {
-  const user = await db.get(userhash);
-  return JSON.parse(user);
+  const username = await db.get(userhash);
+  return await findByUsername(username);
 };
 
 module.exports = {

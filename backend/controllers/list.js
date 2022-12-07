@@ -5,7 +5,7 @@ const { client: db } = require('../utils/database');
 const socketCache = require('../utils/sockets');
 const { getStringHash } = require('../utils/string');
 const getUserLists = async (userhash) => {
-  const user = JSON.parse((await db.get(userhash)) || '{}');
+  const user = await findUserByHash(userhash);
   const lists = JSON.parse((await db.get('lists')) || '[]');
   return lists.filter((list) => user.lists?.includes(list.id));
 };
@@ -14,7 +14,7 @@ const saveLists = async (lists) => {
   await db.set('lists', JSON.stringify(lists));
 };
 const saveList = async (userhash, list) => {
-  const user = JSON.parse(await db.get(userhash));
+  const user = await findUserByHash(userhash);
   if (!user) {
     console.log('user not found', userhash);
     return;
@@ -33,7 +33,7 @@ const saveList = async (userhash, list) => {
   return { user, lists: allLists };
 };
 const findListById = async (userhash, listId) => {
-  const user = JSON.parse(await db.get(userhash));
+  const user = await findUserByHash(userhash);
   if (!user) return null;
   return List.fromObject(
     JSON.parse(await db.get('lists')).find(
@@ -115,6 +115,7 @@ const get = async (payload) => {
     const lists = await getUserLists(auth);
     const list2show = lists.slice(offset, limit);
     const user = await findUserByHash(auth);
+    console.log('list2show', list2show);
     resendListsForUser(user.username, list2show);
   } catch (err) {
     console.error(err.message);
@@ -137,9 +138,7 @@ const generateTask = async (payload) => {
     const { listId } = payload.params;
     const { name } = payload.body;
     const { auth } = payload.cookies;
-    console.log('payload', payload);
     const list = await findListById(auth, listId);
-    console.log('list', list);
     if (list) {
       list.items = [
         ...list.items,

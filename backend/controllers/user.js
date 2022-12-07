@@ -6,7 +6,6 @@ const {
   findByUsername,
 } = require('../database/user');
 const { client: db } = require('../utils/database');
-const { getStringHash } = require('../utils/string');
 const socketCache = require('../utils/sockets');
 const logout = async (payload) => {
   const id = payload.auth;
@@ -24,8 +23,7 @@ const auth = async (payload) => {
   const { username, password, id } = payload;
   const user = await findByUserAndPass(username, password);
   if (user) {
-    user.id = id;
-    await db.set(id, JSON.stringify(user));
+    await db.set(id, username);
     await updateUser(user);
   } else {
     console.error('Invalid Credentials', JSON.stringify(payload));
