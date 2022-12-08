@@ -23,7 +23,6 @@ const ShareListDialog = (props) => {
   React.useEffect(() => {
     const socket = socketCache.backendConnection;
     socket.on('users', (payload) => {
-      console.log('llego', payload);
       setShareOptions(JSON.parse(payload));
     });
     setLoading(true);

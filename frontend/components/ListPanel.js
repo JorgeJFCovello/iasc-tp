@@ -2,14 +2,29 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useState } from 'react';
 import * as React from 'react';
 import Router from 'next/router';
-import io from 'socket.io-client';
-import { Button, Card, CardActions, CardContent, Grid } from '@mui/material';
+import {
+  Button,
+  Card,
+  CardActions,
+  CardContent,
+  CircularProgress,
+  Grid,
+} from '@mui/material';
 import moment from 'moment';
 import CreateListDialog from './CreateListDialog';
 import ShareListDialog from './ShareListDialog';
 import { socketCache } from '../libs/socket';
-import { env } from '../next.config';
 import { LoginOutlined } from '@mui/icons-material';
+
+const map2Grid = (lists) => {
+  return lists.map((list, index) => ({
+    ...list,
+    creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
+    taskCount: list.items.length,
+    _id: list.id,
+    id: index,
+  }));
+};
 
 export default function ListPanel(props) {
   const [lists, setList] = useState([]);
@@ -61,23 +76,29 @@ export default function ListPanel(props) {
 
   React.useEffect(() => {
     const webSocket = socketCache.backendConnection;
+    console.log('username', username);
     webSocket.on(`get-lists-${username}`, (payload) => {
-      const newLists = payload.map((list, index) => ({
-        ...list,
-        creationDate: moment(list.creationDate).format('DD/MM/YYYY'),
-        taskCount: list.items.length,
-        _id: list.id,
-        id: index,
-      }));
-      console.log('llegaron cosas');
-      setList(newLists);
+      console.log('get socket', username, payload);
+      setList(map2Grid(payload));
+    });
+  }, [socket]);
+  React.useEffect(() => {
+    const webSocket = socketCache.backendConnection;
+    webSocket.on(`get-lists-${username}`, (payload) => {
+      console.log('get socket', username, payload);
+      setList(map2Grid(payload));
     });
     setSocket(webSocket);
     setLoading(true);
-    fetch(`/api/list`)
-      .catch((err) => setError(err))
-      .finally(() => setLoading(false));
-  }, []);
+    setTimeout(() => {
+      fetch(`/api/list`)
+        .catch((err) => setError(err))
+        .finally(() => setLoading(false));
+    }, 2000);
+    return () => {
+      webSocket.off(`get-lists-${username}`);
+    };
+  }, [username]);
 
   return (
     <Grid container justifyContent="center">
@@ -104,14 +125,29 @@ export default function ListPanel(props) {
             </Button>
           </Grid>
           <CardContent>
-            <DataGrid
-              style={{ height: 400, width: '100%' }}
-              rows={lists}
-              columns={columns}
-              pageSize={pageSize}
-              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-              rowsPerPageOptions={[5, 10, 25, 50]}
-            />
+            {loading ? (
+              <div
+                class="d-flex justify-center"
+                style={{
+                  height: 400,
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <CircularProgress />
+              </div>
+            ) : (
+              <DataGrid
+                style={{ height: 400, width: '100%' }}
+                rows={lists}
+                columns={columns}
+                pageSize={pageSize}
+                onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+              />
+            )}
           </CardContent>
           <CardActions>
             <Button onClick={() => setOpenCreationDialog(!openCreationDialog)}>

@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -60,7 +61,7 @@ export default function ListPanel(props) {
       setTasks(newTasks);
     });
     setSocket(webSocket);
-    getlistData();
+    setTimeout(getlistData, 2000);
   }, []);
   React.useEffect(getlistData, [listId]);
 
@@ -189,15 +190,30 @@ export default function ListPanel(props) {
           </Grid>
           <h1>{title}</h1>
           <CardContent>
-            <DataGrid
-              style={{ height: 400, width: '100%' }}
-              rows={tasks}
-              columns={columns}
-              pageSize={pageSize}
-              onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              onCellEditCommit={onCellEditCommit}
-            />
+            {loading ? (
+              <div
+                class="d-flex justify-center"
+                style={{
+                  height: 400,
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <CircularProgress />
+              </div>
+            ) : (
+              <DataGrid
+                style={{ height: 400, width: '100%' }}
+                rows={tasks}
+                columns={columns}
+                pageSize={pageSize}
+                onPageSizeChange={(newPageSize) => setPageSize(newPageSize)}
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                onCellEditCommit={onCellEditCommit}
+              />
+            )}
           </CardContent>
           <CardActions>
             <Button onClick={() => setOpenCreationDialog(true)}>
