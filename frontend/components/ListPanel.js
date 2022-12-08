@@ -89,7 +89,12 @@ export default function ListPanel(props) {
               style={{ margin: '10px' }}
               variant="outlined"
               onClick={() => {
-                fetch(`/api/logout`).finally(() => {
+                fetch(`/api/logout`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                }).finally(() => {
                   Router.push('/');
                 });
               }}
