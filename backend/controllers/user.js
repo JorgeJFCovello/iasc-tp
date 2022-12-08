@@ -4,15 +4,18 @@ const {
   findByUserAndPass,
   saveUser,
   findByUsername,
+  findUserByHash,
 } = require('../database/user');
 const { client: db } = require('../utils/database');
 const socketCache = require('../utils/sockets');
 const logout = async (payload) => {
   const id = payload.auth;
-  const user = await db.get(id);
-  user.id = null;
-  await saveUser(user);
-  await db.del(id);
+  const user = await findUserByHash(id);
+  if (user) {
+    user.id = null;
+    await saveUser(user);
+    await db.del(id);
+  }
 };
 const listUsers = async () => {
   const users = await db.get('users');
